@@ -18,11 +18,11 @@ at 375px and 1280px, tick the boxes, commit. Use `/next-phase` to continue.
 - [x] Verify tables in Nuxt DevTools → Database
 
 ## Phase 2 — Auth
-- [ ] `#auth-utils` User type augmentation
-- [ ] `POST /api/auth/login`; `server/utils/auth.ts` (`requireAuthUser`, `requireAdmin`)
-- [ ] `auth.global.ts` + `admin.ts` middleware
-- [ ] `/login` page (auth layout), logout from user menu
-- [ ] Deactivated user is logged out on next request
+- [x] `#auth-utils` User type augmentation
+- [x] `POST /api/auth/login`; `server/utils/auth.ts` (`requireAuthUser`, `requireAdmin`)
+- [x] `auth.global.ts` + `admin.ts` middleware
+- [x] `/login` page (auth layout), logout from user menu
+- [x] Deactivated user is logged out on next request
 
 ## Phase 3 — Layout & read-only browsing
 - [ ] `layouts/default.vue` with UDashboard components, role-aware nav, colour-mode toggle

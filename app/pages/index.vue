@@ -1,23 +1,30 @@
 <script setup lang="ts">
 useHead({ title: 'PSD Link Hub' })
+
+const { user } = useUserSession()
 </script>
 
 <template>
-  <div class="flex min-h-svh items-center justify-center p-6">
-    <UCard class="w-full max-w-md">
-      <template #header>
-        <h1 class="text-lg font-semibold">
-          PSD Link Hub
-        </h1>
-      </template>
-      <p class="text-sm text-muted">
-        Scaffold is up. Links, favorites and the archive land in the next phases.
+  <UCard>
+    <template #header>
+      <h1 class="text-lg font-semibold">
+        Signed in as {{ user?.name }}
+      </h1>
+    </template>
+
+    <div class="space-y-2 text-sm">
+      <p class="text-muted">
+        {{ user?.email }}
       </p>
-      <template #footer>
-        <UButton to="https://nuxt.com/docs" target="_blank" icon="i-lucide-book-open" variant="subtle">
-          Nuxt docs
-        </UButton>
-      </template>
-    </UCard>
-  </div>
+      <UBadge :color="user?.role === 'admin' ? 'primary' : 'neutral'" variant="subtle">
+        {{ user?.role }}
+      </UBadge>
+    </div>
+
+    <template #footer>
+      <p class="text-sm text-muted">
+        Links, favorites and the archive land in the next phases.
+      </p>
+    </template>
+  </UCard>
 </template>
