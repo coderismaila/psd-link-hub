@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { TabsItem } from '@nuxt/ui'
 import { linkFiltersSchema, type LinkFilters } from '#shared/schemas/link'
+import type { LinkWithPrefs } from '#shared/types/link'
 
 useHead({ title: 'Links — PSD Link Hub' })
 
@@ -45,18 +45,6 @@ async function archiveForEveryone(link: LinkWithPrefs) {
   }
 }
 
-/**
- * Narrow screens show one section at a time. The switch is plain CSS — `sm:block` wins over the
- * hidden class at the breakpoint — so the server and the browser render the same markup and both
- * sections keep a single instance.
- */
-const mobileTab = ref('favorites')
-
-const tabs: TabsItem[] = [
-  { label: 'Favorites', icon: 'i-lucide-star', value: 'favorites' },
-  { label: 'All links', icon: 'i-lucide-link', value: 'all' }
-]
-
 // Editing and deleting live on /admin/links, which is where the card menu sends admins.
 function goToAdminLinks() {
   return navigateTo('/admin/links')
@@ -65,54 +53,39 @@ function goToAdminLinks() {
 
 <template>
   <div class="flex flex-col gap-6">
-    <UTabs
-      v-model="mobileTab"
-      :items="tabs"
-      size="sm"
-      class="sm:hidden"
-    />
+    <!-- A launcher for the sheets this user opens daily, not a second copy of the list below. -->
+    <FavoritesBar />
 
-    <div :class="[mobileTab === 'favorites' ? 'block' : 'hidden', 'sm:block']">
-      <FavoritesZone
+    <div class="flex flex-col gap-4">
+      <LinkFilters v-model="filters" />
+
+      <UAlert
+        v-if="error"
+        color="error"
+        variant="subtle"
+        icon="i-lucide-triangle-alert"
+        title="Could not load links"
+        :description="error.statusMessage || 'Please try again.'"
+      />
+
+      <LinkList
+        v-else
+        :links="links"
+        :pending="pending"
+        @toggle-favorite="toggleFavorite"
         @archive-mine="archiveForMe"
         @edit="goToAdminLinks"
         @archive-global="archiveForEveryone"
         @delete="goToAdminLinks"
-      />
-    </div>
-
-    <div :class="[mobileTab === 'all' ? 'block' : 'hidden', 'sm:block']">
-      <div class="flex flex-col gap-4">
-        <LinkFilters v-model="filters" />
-
-        <UAlert
-          v-if="error"
-          color="error"
-          variant="subtle"
-          icon="i-lucide-triangle-alert"
-          title="Could not load links"
-          :description="error.statusMessage || 'Please try again.'"
-        />
-
-        <LinkList
-          v-else
-          :links="links"
-          :pending="pending"
-          @toggle-favorite="toggleFavorite"
-          @archive-mine="archiveForMe"
-          @edit="goToAdminLinks"
-          @archive-global="archiveForEveryone"
-          @delete="goToAdminLinks"
-        >
-          <template #empty>
-            <EmptyState
-              icon="i-lucide-link"
-              title="No links found"
-              description="Try clearing the filters, or ask an admin to add the sheet you are looking for."
-            />
-          </template>
-        </LinkList>
-      </div>
+      >
+        <template #empty>
+          <EmptyState
+            icon="i-lucide-link"
+            title="No links found"
+            description="Try clearing the filters, or ask an admin to add the sheet you are looking for."
+          />
+        </template>
+      </LinkList>
     </div>
   </div>
 </template>

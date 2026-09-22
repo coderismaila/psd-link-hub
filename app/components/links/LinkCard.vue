@@ -2,16 +2,7 @@
 import type { DropdownMenuItem } from '@nuxt/ui'
 import type { LinkWithPrefs } from '#shared/types/link'
 
-const props = withDefaults(defineProps<{
-  link: LinkWithPrefs
-  /**
-   * Set inside the favorites zone. Drag reordering is pointer-only, so knowing where the card
-   * sits lets the menu offer the same moves to keyboard and screen-reader users.
-   */
-  position?: { index: number, total: number } | null
-}>(), {
-  position: null
-})
+const props = defineProps<{ link: LinkWithPrefs }>()
 
 const emit = defineEmits<{
   'toggle-favorite': [link: LinkWithPrefs]
@@ -19,8 +10,6 @@ const emit = defineEmits<{
   'edit': [link: LinkWithPrefs]
   'archive-global': [link: LinkWithPrefs]
   'delete': [link: LinkWithPrefs]
-  'move-up': [link: LinkWithPrefs]
-  'move-down': [link: LinkWithPrefs]
 }>()
 
 const { user } = useUserSession()
@@ -41,23 +30,6 @@ const createdOn = computed(() =>
 
 const menuItems = computed<DropdownMenuItem[][]>(() => {
   const items: DropdownMenuItem[][] = []
-
-  if (props.position) {
-    items.push([
-      {
-        label: 'Move up',
-        icon: 'i-lucide-arrow-up',
-        disabled: props.position.index === 0,
-        onSelect: () => emit('move-up', props.link)
-      },
-      {
-        label: 'Move down',
-        icon: 'i-lucide-arrow-down',
-        disabled: props.position.index === props.position.total - 1,
-        onSelect: () => emit('move-down', props.link)
-      }
-    ])
-  }
 
   items.push([
     {
@@ -96,19 +68,6 @@ const menuItems = computed<DropdownMenuItem[][]>(() => {
 <template>
   <div class="flex h-full flex-col gap-3 rounded-lg border border-default bg-default p-4">
     <div class="flex items-start gap-2">
-      <!--
-        Visible at every width: on a phone this is the only way to start a drag. Keyboard users
-        reorder from the menu instead, so it stays out of the tab order.
-      -->
-      <UButton
-        class="drag-handle min-h-10 min-w-10 cursor-grab"
-        color="neutral"
-        variant="ghost"
-        size="sm"
-        icon="i-lucide-grip-vertical"
-        tabindex="-1"
-        aria-hidden="true"
-      />
 
       <h3 class="min-w-0 flex-1 truncate font-medium" :title="link.name">
         {{ link.name }}

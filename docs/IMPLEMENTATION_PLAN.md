@@ -35,10 +35,11 @@ at 375px and 1280px, tick the boxes, commit. Use `/next-phase` to continue.
 - [x] Favorite / order endpoints; `GET /api/links/favorites`
 - [x] `useFavorites()` with optimistic updates + rollback toasts
 - [x] Star toggle on cards
-- [ ] `FavoritesZone` with drag-in from list and reorder (vue-draggable-plus), touch tested
-  — built; the mobile drag handle was hidden below `sm` and was fixed in Phase 8.
-    Still needs a manual drag + touch check in a browser.
-- [x] Mobile: UTabs Favorites / All
+- [ ] `FavoritesBar` with drag-to-reorder (vue-draggable-plus), touch tested
+  — redesigned after Phase 8: favorites are compact tiles, drag reorders them and nothing else.
+    Drag-to-favorite and the mobile Favorites/All tabs were removed. Still needs a manual
+    drag + touch check in a browser.
+- [x] ~~Mobile: UTabs Favorites / All~~ — dropped; the bar and the list share one page at every width
 
 ## Phase 5 — Admin: links & categories
 - [x] Link CRUD endpoints + `LinkFormModal` (category dropdown, period fields, Sheets URL warning)

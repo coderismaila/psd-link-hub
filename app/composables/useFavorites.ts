@@ -1,16 +1,12 @@
 import type { LinkWithPrefs } from '#shared/types/link'
 
-/** The only part of a SortableJS drop event this app needs. */
-export interface DragDropEvent {
-  newIndex?: number
-}
-
 /**
  * The caller's favorites, kept in step with the browse list.
  *
- * Every change is applied locally first and the server is told afterwards. If the request fails
- * the list is refetched — server truth, rather than a guess at what the state used to be — and a
- * toast explains what happened.
+ * Favoriting is always done with the star on a card; the favorites bar only ever reorders what is
+ * already there. Every change is applied locally first and the server is told afterwards. If the
+ * request fails the list is refetched — server truth, rather than a guess at what the state used
+ * to be — and a toast explains what happened.
  */
 export function useFavorites() {
   const toast = useToast()
@@ -75,49 +71,6 @@ export function useFavorites() {
     }
   }
 
-  /** A card was dropped onto the favorites zone. */
-  async function handleDrop(event: DragDropEvent) {
-    const index = event.newIndex ?? favorites.value.length - 1
-    const dropped = favorites.value[index]
-
-    if (!dropped) return
-
-    // Dropping something that is already a favorite should reorder, not duplicate it.
-    const alreadyPresent = favorites.value.some((item, position) =>
-      item.id === dropped.id && position !== index
-    )
-
-    if (alreadyPresent) {
-      favorites.value = favorites.value.filter((_, position) => position !== index)
-
-      try {
-        await persistOrder()
-      } catch (error) {
-        await recover('Could not reorder favorites', error)
-      }
-
-      return
-    }
-
-    const droppedId = dropped.id
-
-    // The dragged card arrives as a clone of the browse-list row, so mark the copy that landed
-    // here as well as the one still sitting in the list behind it.
-    favorites.value = favorites.value.map((item, position) =>
-      position === index ? { ...item, isFavorite: true } : item
-    )
-    markInBrowseList(droppedId, true)
-
-    try {
-      await $fetch(`/api/links/${droppedId}/favorite`, { method: 'PUT', body: { favorite: true } })
-      await persistOrder()
-      await refresh()
-    } catch (error) {
-      markInBrowseList(droppedId, false)
-      await recover('Could not add favorite', error)
-    }
-  }
-
   /**
    * Moves one favorite a single place. This is the keyboard and screen-reader path to the same
    * result as dragging, offered from the card menu.
@@ -156,7 +109,6 @@ export function useFavorites() {
     pending: computed(() => status.value === 'pending'),
     refresh,
     toggleFavorite,
-    handleDrop,
     handleReorder,
     moveFavorite
   }

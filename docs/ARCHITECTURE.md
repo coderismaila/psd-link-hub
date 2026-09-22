@@ -198,34 +198,33 @@ admin section only when `user.role === 'admin'`, user menu with colour-mode togg
 
 ## 7. Components
 
-- `LinkCard.vue` — card for grid/mobile; props `link: LinkWithPrefs`; emits `toggle-favorite`, `archive-mine`, `edit`, `archive-global`, `delete`. Has a drag handle (`.drag-handle`, `i-lucide-grip-vertical`).
-- `LinkList.vue` — responsive grid of `LinkCard`s wrapped in `VueDraggable` (source list).
-- `FavoritesZone.vue` — `VueDraggable` target; empty state "Drag links here or tap ☆".
+- `LinkCard.vue` — card for the grid; props `link: LinkWithPrefs`; emits `toggle-favorite`, `archive-mine`, `edit`, `archive-global`, `delete`. No drag handle: cards are never dragged.
+- `LinkList.vue` — responsive grid of `LinkCard`s. A plain list, not a drag source.
+- `FavoritesBar.vue` — compact tiles above the list; reorder-only `VueDraggable`. Empty state "No favorites yet. Tap the star on any link to pin it here."
 - `LinkFilters.vue` — UInput search (debounced 250 ms), USelectMenu category, period type, month/year; synced to route query.
 - `LinkFormModal.vue` — UModal + UForm with zod schema from `shared/schemas/link.ts`.
 - `CategoryBadge.vue`, `PeriodBadge.vue`, `EmptyState.vue`, `ConfirmModal.vue`.
 
-## 8. Drag and drop (`vue-draggable-plus`)
+## 8. Favorites and reordering (`vue-draggable-plus`)
+
+Favorites are a launcher, not a second catalog. A link appears once on the page — as a card in the
+list — and favoriting pins a compact tile to the bar above it. Dragging is used for one thing only:
+putting those tiles in the order the user wants.
 
 ```vue
-<!-- LinkList.vue: source — clones out, never accepts, not sortable -->
-<VueDraggable v-model="items" :group="{ name: 'links', pull: 'clone', put: false }"
-  :sort="false" handle=".drag-handle" :delay="150" :delay-on-touch-only="true"
-  :clone="(l) => ({ ...l })" class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-  <LinkCard v-for="l in items" :key="l.id" :link="l" />
-</VueDraggable>
-
-<!-- FavoritesZone.vue: target — accepts & sortable -->
-<VueDraggable v-model="favorites" :group="{ name: 'links', pull: false, put: true }"
+<!-- FavoritesBar.vue: reorder only — nothing enters or leaves by drag -->
+<VueDraggable v-model="favorites" :group="{ name: 'favorites', pull: false, put: false }"
   handle=".drag-handle" :delay="150" :delay-on-touch-only="true"
-  @add="onAdd" @update="onReorder" ghost-class="opacity-40">
+  @update="handleReorder" ghost-class="opacity-40">
 ```
 
-- `onAdd(e)`: the dropped item is `favorites[e.newIndex]`. If it's a duplicate, remove it locally
-  and just reorder; otherwise call `PUT /api/links/:id/favorite` then `PUT /api/favorites/order`.
-- `onReorder()`: `PUT /api/favorites/order` with the current id list.
-- All in `useFavorites()` with optimistic state + rollback. Star button uses the same composable.
-- Keyboard/a11y alternative: star button + "Move up / Move down" items in the favorite card menu.
+- `handleReorder()`: `PUT /api/favorites/order` with the current id list.
+- `toggleFavorite(link)`: the star on a card, the only way in or out of the bar.
+- `moveFavorite(link, ±1)`: "Move earlier / Move later" in the tile menu — the same result without
+  a pointer.
+- All in `useFavorites()`, applied locally first and refetched on failure with a toast. The cached
+  browse list has its row replaced (not mutated) so the card's star updates: Nuxt 4 returns
+  `useFetch` data in a shallow ref, which ignores nested writes.
 
 ## 9. Shared types
 

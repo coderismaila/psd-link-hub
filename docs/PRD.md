@@ -69,11 +69,15 @@ a bulk "Archive overdue" action instead.
 - Each item shows name, category badge, period label (e.g. "Sep 2026" / "2026"), created date, description (truncated), star, "Open" button (new tab, `rel="noopener"`), copy-link, and a menu (archive for me; admin: edit, archive globally, delete).
 - Default sort: newest period first, then name.
 
-**US-3 Favorites.** As a user I star a link and it appears in the Favorites zone at the top of the page / Favorites tab.
-- Dragging a link card onto the Favorites zone favorites it; dropping an already-favorited link does nothing harmful.
-- Dragging within Favorites reorders them; order survives reload.
-- Works with touch (long-press ~150 ms to start a drag on mobile). Star button is always available as the non-drag alternative.
-- Optimistic update; on API failure revert and show a toast.
+**US-3 Favorites.** As a user I star a link and it is pinned to the Favorites bar at the top of the page.
+- Favorites are compact tiles, not a second copy of the card: name, category colour and period.
+  Tapping a tile opens the sheet in a new tab.
+- The star on a card is the only way to favorite or unfavorite. A favorited link shows a filled
+  star in the list; it is never rendered twice on the page.
+- Dragging a tile within the bar reorders the favorites; order survives reload. Works with touch
+  (long-press ~150 ms). "Move earlier / Move later" in the tile menu does the same thing without a
+  pointer, for keyboard and screen-reader users.
+- Optimistic update; on API failure refetch and show a toast.
 
 **US-4 Personal archive.** As a user I archive a link for myself; it disappears from my active list and favorites, and appears in Archive → "Archived by me" with a Restore action.
 
