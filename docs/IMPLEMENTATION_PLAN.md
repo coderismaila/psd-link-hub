@@ -40,10 +40,10 @@ at 375px and 1280px, tick the boxes, commit. Use `/next-phase` to continue.
 - [x] Mobile: UTabs Favorites / All
 
 ## Phase 5 — Admin: links & categories
-- [ ] Link CRUD endpoints + `LinkFormModal` (category dropdown, period fields, Sheets URL warning)
-- [ ] "Duplicate for next period"
-- [ ] Category CRUD endpoints + `/admin/categories` (delete blocked when in use)
-- [ ] `/admin/links` table (cards on mobile)
+- [x] Link CRUD endpoints + `LinkFormModal` (category dropdown, period fields, Sheets URL warning)
+- [x] "Duplicate for next period"
+- [x] Category CRUD endpoints + `/admin/categories` (delete blocked when in use)
+- [x] `/admin/links` table (cards on mobile)
 
 ## Phase 6 — Archive
 - [ ] Personal archive endpoint + "Archive for me" action
