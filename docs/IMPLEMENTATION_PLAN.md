@@ -36,7 +36,8 @@ at 375px and 1280px, tick the boxes, commit. Use `/next-phase` to continue.
 - [x] `useFavorites()` with optimistic updates + rollback toasts
 - [x] Star toggle on cards
 - [ ] `FavoritesZone` with drag-in from list and reorder (vue-draggable-plus), touch tested
-  — built; still needs a manual drag + touch check in a browser
+  — built; the mobile drag handle was hidden below `sm` and was fixed in Phase 8.
+    Still needs a manual drag + touch check in a browser.
 - [x] Mobile: UTabs Favorites / All
 
 ## Phase 5 — Admin: links & categories
@@ -59,6 +60,9 @@ at 375px and 1280px, tick the boxes, commit. Use `/next-phase` to continue.
 
 ## Phase 8 — Polish
 - [ ] Responsive pass at 375 / 768 / 1280; dark mode pass
-- [ ] Keyboard access for favorites (menu move up/down), focus states, aria-labels on icon buttons
-- [ ] Error pages (`error.vue`), 404
-- [ ] README with setup, seed, deploy notes
+  — code audited (no hard-coded light-only colours; tables collapse to cards; tap targets
+    raised to 40px). The visual pass at each width, in both themes, still needs a browser.
+- [x] Keyboard access for favorites (menu move up/down), focus states, aria-labels on icon buttons
+  — focus rings are Nuxt UI defaults and were not checked visually.
+- [x] Error pages (`error.vue`), 404
+- [x] README with setup, seed, deploy notes

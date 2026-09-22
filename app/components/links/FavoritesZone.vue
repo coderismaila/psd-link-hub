@@ -9,7 +9,7 @@ const emit = defineEmits<{
   'delete': [link: LinkWithPrefs]
 }>()
 
-const { favorites, pending, toggleFavorite, handleDrop, handleReorder } = useFavorites()
+const { favorites, pending, toggleFavorite, handleDrop, handleReorder, moveFavorite } = useFavorites()
 </script>
 
 <template>
@@ -45,10 +45,13 @@ const { favorites, pending, toggleFavorite, handleDrop, handleReorder } = useFav
       @update="handleReorder"
     >
       <LinkCard
-        v-for="link in favorites"
+        v-for="(link, index) in favorites"
         :key="link.id"
         :link="link"
+        :position="{ index, total: favorites.length }"
         @toggle-favorite="toggleFavorite"
+        @move-up="moveFavorite($event, -1)"
+        @move-down="moveFavorite($event, 1)"
         @archive-mine="emit('archive-mine', $event)"
         @edit="emit('edit', $event)"
         @archive-global="emit('archive-global', $event)"

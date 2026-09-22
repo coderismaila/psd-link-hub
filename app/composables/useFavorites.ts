@@ -103,6 +103,30 @@ export function useFavorites() {
     }
   }
 
+  /**
+   * Moves one favorite a single place. This is the keyboard and screen-reader path to the same
+   * result as dragging, offered from the card menu.
+   */
+  async function moveFavorite(link: LinkWithPrefs, offset: -1 | 1) {
+    const index = favorites.value.findIndex(item => item.id === link.id)
+    const destination = index + offset
+
+    if (index === -1 || destination < 0 || destination >= favorites.value.length) {
+      return
+    }
+
+    const reordered = [...favorites.value]
+    const [moved] = reordered.splice(index, 1)
+    reordered.splice(destination, 0, moved!)
+    favorites.value = reordered
+
+    try {
+      await persistOrder()
+    } catch (error) {
+      await recover('Could not reorder favorites', error)
+    }
+  }
+
   /** Favorites were dragged into a new order within the zone. */
   async function handleReorder() {
     try {
@@ -118,6 +142,7 @@ export function useFavorites() {
     refresh,
     toggleFavorite,
     handleDrop,
-    handleReorder
+    handleReorder,
+    moveFavorite
   }
 }

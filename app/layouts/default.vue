@@ -77,6 +77,7 @@ const userMenuItems = computed<DropdownMenuItem[][]>(() => [
             :label="collapsed ? undefined : user?.name"
             :block="!collapsed"
             :square="collapsed"
+            class="min-h-10"
             :ui="{ base: collapsed ? undefined : 'justify-start' }"
             :aria-label="`Account menu for ${user?.name}`"
           />
