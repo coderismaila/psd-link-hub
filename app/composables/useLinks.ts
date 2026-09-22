@@ -17,7 +17,10 @@ export function useLinks(filters: Ref<Partial<LinkFilters>>, options: { key?: st
   const { data, status, error, refresh } = useFetch<LinkWithPrefs[]>('/api/links', {
     key: options.key ?? 'links',
     query,
-    default: () => []
+    default: () => [],
+    // Nuxt 4 defaults to a shallow ref. Favoriting updates a single row of this list, which a
+    // shallow ref would not notice until the next refetch.
+    deep: true
   })
 
   return {

@@ -17,7 +17,10 @@ export function useFavorites() {
 
   const { data, status, refresh } = useFetch<LinkWithPrefs[]>('/api/links/favorites', {
     key: 'favorites',
-    default: () => []
+    default: () => [],
+    // Nuxt 4 hands back a shallow ref by default. This list is reordered in place by the drag
+    // library, so it has to be deeply reactive or the moves never reach the DOM.
+    deep: true
   })
 
   const favorites = data as Ref<LinkWithPrefs[]>
@@ -25,11 +28,17 @@ export function useFavorites() {
   // The browse list holds its own copy of each link, so its stars have to follow along.
   const { data: browseList } = useNuxtData<LinkWithPrefs[]>('links')
 
+  /**
+   * Replaces the row rather than editing it in place, so the change shows up whether the cached
+   * list is a deep or a shallow ref.
+   */
   function markInBrowseList(linkId: number, favorite: boolean) {
-    const row = browseList.value?.find(link => link.id === linkId)
-    if (row) {
-      row.isFavorite = favorite
-    }
+    const list = browseList.value
+    if (!list?.some(link => link.id === linkId)) return
+
+    browseList.value = list.map(link =>
+      link.id === linkId ? { ...link, isFavorite: favorite } : link
+    )
   }
 
   async function recover(title: string, error: unknown) {
@@ -90,15 +99,21 @@ export function useFavorites() {
       return
     }
 
-    dropped.isFavorite = true
-    markInBrowseList(dropped.id, true)
+    const droppedId = dropped.id
+
+    // The dragged card arrives as a clone of the browse-list row, so mark the copy that landed
+    // here as well as the one still sitting in the list behind it.
+    favorites.value = favorites.value.map((item, position) =>
+      position === index ? { ...item, isFavorite: true } : item
+    )
+    markInBrowseList(droppedId, true)
 
     try {
-      await $fetch(`/api/links/${dropped.id}/favorite`, { method: 'PUT', body: { favorite: true } })
+      await $fetch(`/api/links/${droppedId}/favorite`, { method: 'PUT', body: { favorite: true } })
       await persistOrder()
       await refresh()
     } catch (error) {
-      markInBrowseList(dropped.id, false)
+      markInBrowseList(droppedId, false)
       await recover('Could not add favorite', error)
     }
   }
