@@ -1,8 +1,15 @@
 export default defineAppConfig({
   ui: {
     colors: {
-      primary: 'blue',
-      neutral: 'slate'
+      // `ke` is the Kaduna Electric green defined in assets/css/main.css.
+      primary: 'ke',
+      secondary: 'ke-lime',
+      neutral: 'zinc'
+    },
+    card: {
+      slots: {
+        root: 'rounded-xl'
+      }
     }
   }
 })

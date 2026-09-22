@@ -48,8 +48,14 @@ const userMenuItems = computed<DropdownMenuItem[][]>(() => [
   <UDashboardGroup>
     <UDashboardSidebar collapsible resizable :ui="{ footer: 'border-t border-default' }">
       <template #header="{ collapsed }">
-        <span v-if="!collapsed" class="truncate font-semibold">PSD Link Hub</span>
-        <UIcon v-else name="i-lucide-link" class="mx-auto size-5 text-primary" />
+        <NuxtLink to="/" class="flex min-w-0 items-center gap-2.5" aria-label="PSD Link Hub home">
+          <BrandMark v-if="collapsed" compact />
+          <template v-else>
+            <BrandMark height="h-7" />
+            <span class="h-6 w-px shrink-0 bg-accented" />
+            <span class="truncate text-sm font-semibold tracking-tight">Link Hub</span>
+          </template>
+        </NuxtLink>
       </template>
 
       <template #default="{ collapsed }">

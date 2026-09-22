@@ -1,2 +1,75 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 @import "@nuxt/ui";
+
+@theme static {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /*
+   * Kaduna Electric brand green. Sampled from the logo on kadunaelectric.com: #008100 is the
+   * dominant green and sits at 600, with the rest of the ramp built around it in OKLCH so the
+   * steps are perceptually even.
+   */
+  --color-ke-50: #f0faef;
+  --color-ke-100: #e0f3de;
+  --color-ke-200: #c5eac1;
+  --color-ke-300: #a2dd9c;
+  --color-ke-400: #77c870;
+  --color-ke-500: #50b14a;
+  --color-ke-600: #008100;
+  --color-ke-700: #046604;
+  --color-ke-800: #034f02;
+  --color-ke-900: #013d01;
+  --color-ke-950: #002300;
+
+  /* The lime diagonal from the logo mark (#6cae28), used for accents and gradients. */
+  --color-ke-lime-50: #f2faee;
+  --color-ke-lime-100: #e4f2db;
+  --color-ke-lime-200: #cde8bb;
+  --color-ke-lime-300: #b2db94;
+  --color-ke-lime-400: #8bc55c;
+  --color-ke-lime-500: #6cae28;
+  --color-ke-lime-600: #569404;
+  --color-ke-lime-700: #467a03;
+  --color-ke-lime-800: #386300;
+  --color-ke-lime-900: #2d5101;
+  --color-ke-lime-950: #1c3600;
+
+  /* The deep green of the wordmark, for headers and dark surfaces. */
+  --color-ke-deep: #004b24;
+}
+
+:root {
+  --ui-radius: 0.625rem;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* The brand diagonal, used behind the login card and the sidebar header. */
+.ke-brand-gradient {
+  background-image:
+    radial-gradient(120% 120% at 0% 0%, var(--color-ke-lime-500) 0%, transparent 55%),
+    linear-gradient(135deg, var(--color-ke-700) 0%, var(--color-ke-deep) 100%);
+}
+
+/* Cards lift slightly on hover so the grid feels responsive to the pointer. */
+.ke-card {
+  transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+.ke-card:hover {
+  border-color: var(--color-ke-400);
+  box-shadow: 0 10px 20px -12px color-mix(in oklab, var(--color-ke-900) 45%, transparent);
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ke-card,
+  .ke-card:hover {
+    transition: none;
+    transform: none;
+  }
+}

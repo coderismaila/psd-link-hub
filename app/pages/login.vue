@@ -33,15 +33,13 @@ async function onSubmit(event: FormSubmitEvent<LoginInput>) {
 </script>
 
 <template>
-  <UCard>
-    <template #header>
-      <h1 class="text-lg font-semibold">
-        Sign in
-      </h1>
-      <p class="mt-1 text-sm text-muted">
-        Use the account your administrator created for you.
-      </p>
-    </template>
+  <div>
+    <h1 class="text-2xl font-semibold tracking-tight">
+      Sign in
+    </h1>
+    <p class="mt-1 mb-6 text-sm text-muted">
+      Use the account your administrator created for you.
+    </p>
 
     <UForm :schema="loginSchema" :state="state" class="space-y-4" @submit="onSubmit">
       <UFormField label="Email" name="email">
@@ -64,9 +62,13 @@ async function onSubmit(event: FormSubmitEvent<LoginInput>) {
         />
       </UFormField>
 
-      <UButton type="submit" block :loading="loading">
+      <UButton type="submit" block size="lg" :loading="loading" class="min-h-11">
         Sign in
       </UButton>
     </UForm>
-  </UCard>
+
+    <p class="mt-6 text-center text-xs text-dimmed">
+      Accounts are created by an administrator. There is no self sign-up.
+    </p>
+  </div>
 </template>

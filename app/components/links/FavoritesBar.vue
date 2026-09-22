@@ -64,7 +64,8 @@ function tileMenu(link: LinkWithPrefs, index: number): DropdownMenuItem[][] {
 <template>
   <section aria-labelledby="favorites-heading" class="flex flex-col gap-2">
     <div class="flex items-center gap-2">
-      <h2 id="favorites-heading" class="text-sm font-semibold text-muted uppercase">
+      <UIcon name="i-lucide-star" class="size-4 text-primary" />
+      <h2 id="favorites-heading" class="text-sm font-semibold tracking-wide text-muted uppercase">
         Favorites
       </h2>
       <UBadge v-if="favorites.length" color="neutral" variant="subtle" size="sm">
@@ -94,7 +95,7 @@ function tileMenu(link: LinkWithPrefs, index: number): DropdownMenuItem[][] {
       <div
         v-for="(link, index) in favorites"
         :key="link.id"
-        class="flex items-center gap-1 rounded-lg border border-default bg-elevated/40 pe-1 ps-1"
+        class="ke-card group flex items-center gap-1 rounded-xl border border-default bg-gradient-to-br from-primary/8 to-transparent pe-1 ps-1"
       >
         <UButton
           class="drag-handle min-h-10 min-w-8 cursor-grab"
@@ -118,7 +119,7 @@ function tileMenu(link: LinkWithPrefs, index: number): DropdownMenuItem[][] {
               :class="dotClass(link.category.color)"
               :title="link.category.name"
             />
-            <span class="truncate text-sm font-medium">{{ link.name }}</span>
+            <span class="truncate text-sm font-semibold tracking-tight group-hover:text-primary">{{ link.name }}</span>
           </span>
           <span class="ps-3.5 text-xs text-muted">{{ link.periodLabel }}</span>
         </a>
@@ -136,8 +137,13 @@ function tileMenu(link: LinkWithPrefs, index: number): DropdownMenuItem[][] {
       </div>
     </VueDraggable>
 
-    <p v-else class="rounded-lg border border-dashed border-default px-4 py-3 text-sm text-muted">
-      No favorites yet. Tap the star on any link to pin it here.
+    <p
+      v-else
+      class="rounded-xl border border-dashed border-default bg-elevated/30 px-4 py-4 text-sm text-muted"
+    >
+      No favorites yet — tap the
+      <UIcon name="i-lucide-star" class="mx-0.5 inline-block size-4 align-text-bottom" />
+      on any link to pin it here.
     </p>
   </section>
 </template>

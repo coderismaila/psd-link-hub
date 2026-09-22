@@ -15,6 +15,19 @@ const emit = defineEmits<{
 const { user } = useUserSession()
 const isAdmin = computed(() => user.value?.role === 'admin')
 
+/** Literal class names so Tailwind keeps them; an unknown token falls back to neutral. */
+const ACCENTS: Record<string, string> = {
+  primary: 'bg-primary',
+  secondary: 'bg-secondary',
+  success: 'bg-success',
+  info: 'bg-info',
+  warning: 'bg-warning',
+  error: 'bg-error',
+  neutral: 'bg-accented'
+}
+
+const accentClass = computed(() => ACCENTS[props.link.category.color] ?? ACCENTS.neutral)
+
 const toast = useToast()
 const { copy } = useClipboard()
 
@@ -66,10 +79,20 @@ const menuItems = computed<DropdownMenuItem[][]>(() => {
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-3 rounded-lg border border-default bg-default p-4">
+  <div class="ke-card group relative flex h-full flex-col gap-3 overflow-hidden rounded-xl border border-default bg-default p-4">
+    <!-- A hairline of the category colour, so the grid is scannable by colour alone. -->
+    <span
+      aria-hidden="true"
+      class="absolute inset-x-0 top-0 h-0.5"
+      :class="accentClass"
+    />
+
     <div class="flex items-start gap-2">
 
-      <h3 class="min-w-0 flex-1 truncate font-medium" :title="link.name">
+      <h3
+        class="min-w-0 flex-1 truncate font-semibold tracking-tight group-hover:text-primary"
+        :title="link.name"
+      >
         {{ link.name }}
       </h3>
 

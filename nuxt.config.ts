@@ -4,6 +4,11 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ['@nuxt/ui', '@nuxthub/core', 'nuxt-auth-utils', '@vueuse/nuxt', '@nuxt/eslint'],
   css: ['~/assets/css/main.css'],
+  app: {
+    head: {
+      link: [{ rel: 'icon', type: 'image/png', href: '/ke-logo.png' }]
+    }
+  },
   // Components are named after the file alone, so `components/links/LinkCard.vue` is `<LinkCard>`
   // rather than `<LinksLinkCard>`.
   components: [{ path: '~/components', pathPrefix: false }],
