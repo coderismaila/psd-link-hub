@@ -7,7 +7,7 @@ defineProps<{
 }>()
 
 const emit = defineEmits<{
-  'toggle-favorite': [link: LinkWithPrefs]
+  'toggle-quick-access': [link: LinkWithPrefs]
   'archive-mine': [link: LinkWithPrefs]
   'edit': [link: LinkWithPrefs]
   'archive-global': [link: LinkWithPrefs]
@@ -37,7 +37,7 @@ const emit = defineEmits<{
       v-for="link in links"
       :key="link.id"
       :link="link"
-      @toggle-favorite="emit('toggle-favorite', $event)"
+      @toggle-quick-access="emit('toggle-quick-access', $event)"
       @archive-mine="emit('archive-mine', $event)"
       @edit="emit('edit', $event)"
       @archive-global="emit('archive-global', $event)"

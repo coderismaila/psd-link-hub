@@ -17,19 +17,19 @@ export default defineEventHandler(async (event): Promise<LinkWithPrefs[]> => {
       )
     )
     .where(and(
-      // A globally archived link drops out of favorites; the preference itself is kept, so
+      // A globally archived link drops out of quick access; the preference itself is kept, so
       // restoring the link brings it back.
       eq(schema.links.status, 'active'),
-      eq(schema.userLinkPrefs.isFavorite, true),
+      eq(schema.userLinkPrefs.isQuickAccess, true),
       or(
         isNull(schema.userLinkPrefs.isArchived),
         eq(schema.userLinkPrefs.isArchived, false)
       )
     ))
-    // Gaps in the order are allowed, and a favorite that never got an order sorts last.
+    // Gaps in the order are allowed, and an entry that never got an order sorts last.
     .orderBy(
-      sql`${schema.userLinkPrefs.favoriteOrder} is null`,
-      asc(schema.userLinkPrefs.favoriteOrder),
+      sql`${schema.userLinkPrefs.quickAccessOrder} is null`,
+      asc(schema.userLinkPrefs.quickAccessOrder),
       asc(schema.links.name)
     )
 

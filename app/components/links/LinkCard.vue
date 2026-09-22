@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
+import { categoryHex } from '#shared/schemas/category'
 import type { LinkWithPrefs } from '#shared/types/link'
 
 const props = defineProps<{ link: LinkWithPrefs }>()
 
 const emit = defineEmits<{
-  'toggle-favorite': [link: LinkWithPrefs]
+  'toggle-quick-access': [link: LinkWithPrefs]
   'archive-mine': [link: LinkWithPrefs]
   'edit': [link: LinkWithPrefs]
   'archive-global': [link: LinkWithPrefs]
@@ -15,18 +16,7 @@ const emit = defineEmits<{
 const { user } = useUserSession()
 const isAdmin = computed(() => user.value?.role === 'admin')
 
-/** Literal class names so Tailwind keeps them; an unknown token falls back to neutral. */
-const ACCENTS: Record<string, string> = {
-  primary: 'bg-primary',
-  secondary: 'bg-secondary',
-  success: 'bg-success',
-  info: 'bg-info',
-  warning: 'bg-warning',
-  error: 'bg-error',
-  neutral: 'bg-accented'
-}
-
-const accentClass = computed(() => ACCENTS[props.link.category.color] ?? ACCENTS.neutral)
+const accentHex = computed(() => categoryHex(props.link.category.color))
 
 const toast = useToast()
 const { copy } = useClipboard()
@@ -79,12 +69,12 @@ const menuItems = computed<DropdownMenuItem[][]>(() => {
 </script>
 
 <template>
-  <div class="ke-card group relative flex h-full flex-col gap-3 overflow-hidden rounded-xl border border-default bg-default p-4">
+  <div class="ke-card group relative flex h-full flex-col gap-3 overflow-hidden rounded-md border border-default bg-default p-4">
     <!-- A hairline of the category colour, so the grid is scannable by colour alone. -->
     <span
       aria-hidden="true"
-      class="absolute inset-x-0 top-0 h-0.5"
-      :class="accentClass"
+      class="ke-cat-fill absolute inset-x-0 top-0 h-0.5"
+      :style="{ '--cat': accentHex }"
     />
 
     <div class="flex items-start gap-2">
@@ -97,14 +87,14 @@ const menuItems = computed<DropdownMenuItem[][]>(() => {
       </h3>
 
       <UButton
-        :icon="link.isFavorite ? 'i-lucide-star' : 'i-lucide-star-off'"
-        :color="link.isFavorite ? 'warning' : 'neutral'"
+        :icon="link.isQuickAccess ? 'i-lucide-pin' : 'i-lucide-pin-off'"
+        :color="link.isQuickAccess ? 'primary' : 'neutral'"
         variant="ghost"
         size="sm"
         class="min-h-10 min-w-10"
-        :aria-label="link.isFavorite ? `Remove ${link.name} from favorites` : `Add ${link.name} to favorites`"
-        :aria-pressed="link.isFavorite"
-        @click="emit('toggle-favorite', link)"
+        :aria-label="link.isQuickAccess ? `Remove ${link.name} from quick access` : `Add ${link.name} to quick access`"
+        :aria-pressed="link.isQuickAccess"
+        @click="emit('toggle-quick-access', link)"
       />
     </div>
 

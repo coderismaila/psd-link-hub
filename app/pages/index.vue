@@ -25,12 +25,12 @@ watch(filters, (value) => {
 }, { deep: true })
 
 const { links, pending, error, refresh } = useLinks(filters)
-const { toggleFavorite, refresh: refreshFavorites } = useFavorites()
+const { toggleQuickAccess, refresh: refreshQuickAccess } = useQuickAccess()
 const { setPersonalArchive } = usePersonalArchive()
 const { setGlobalArchive } = useGlobalArchive()
 
 async function reload() {
-  await Promise.all([refresh(), refreshFavorites()])
+  await Promise.all([refresh(), refreshQuickAccess()])
 }
 
 async function archiveForMe(link: LinkWithPrefs) {
@@ -54,7 +54,7 @@ function goToAdminLinks() {
 <template>
   <div class="flex flex-col gap-6">
     <!-- A launcher for the sheets this user opens daily, not a second copy of the list below. -->
-    <FavoritesBar />
+    <QuickAccessBar />
 
     <div class="flex flex-col gap-4">
       <LinkFilters v-model="filters" />
@@ -72,7 +72,7 @@ function goToAdminLinks() {
         v-else
         :links="links"
         :pending="pending"
-        @toggle-favorite="toggleFavorite"
+        @toggle-quick-access="toggleQuickAccess"
         @archive-mine="archiveForMe"
         @edit="goToAdminLinks"
         @archive-global="archiveForEveryone"

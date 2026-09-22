@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
-import type { CategoryBody } from '#shared/schemas/category'
+import { categoryHex, DEFAULT_CATEGORY_COLOR, type CategoryBody } from '#shared/schemas/category'
 import type { CategoryWithCount } from '#shared/types/link'
 
 definePageMeta({ middleware: 'admin' })
@@ -11,7 +11,7 @@ const { categories, pending, refresh } = useCategories()
 
 const formOpen = ref(false)
 const editingId = ref<number | null>(null)
-const formInitial = ref<CategoryBody>({ name: '', color: 'neutral' })
+const formInitial = ref<CategoryBody>({ name: '', color: DEFAULT_CATEGORY_COLOR })
 
 const confirmOpen = ref(false)
 const deleting = ref<CategoryWithCount | null>(null)
@@ -19,13 +19,13 @@ const deletePending = ref(false)
 
 function openCreate() {
   editingId.value = null
-  formInitial.value = { name: '', color: 'neutral' }
+  formInitial.value = { name: '', color: DEFAULT_CATEGORY_COLOR }
   formOpen.value = true
 }
 
 function openEdit(category: CategoryWithCount) {
   editingId.value = category.id
-  formInitial.value = { name: category.name, color: category.color as CategoryBody['color'] }
+  formInitial.value = { name: category.name, color: categoryHex(category.color) }
   formOpen.value = true
 }
 

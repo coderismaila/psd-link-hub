@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
   await requireAdmin(event)
   const id = idParamSchema.parse(getRouterParam(event, 'id'))
 
-  // Favorites were never removed, only hidden while the link was archived, so they come back too.
+  // Quick-access entries were never removed, only hidden while the link was archived, so they come back too.
   const restored = await db
     .update(schema.links)
     .set({ status: 'active', archivedAt: null, archivedBy: null, archivedByUserId: null })

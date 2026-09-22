@@ -31,13 +31,13 @@ at 375px and 1280px, tick the boxes, commit. Use `/next-phase` to continue.
 - [x] `LinkFilters`, `LinkCard`, `LinkList`; filters synced to URL
 - [x] Open (new tab) + copy link; empty & loading states (USkeleton)
 
-## Phase 4 — Favorites
-- [x] Favorite / order endpoints; `GET /api/links/favorites`
-- [x] `useFavorites()` with optimistic updates + rollback toasts
-- [x] Star toggle on cards
-- [ ] `FavoritesBar` with drag-to-reorder (vue-draggable-plus), touch tested
-  — redesigned after Phase 8: favorites are compact tiles, drag reorders them and nothing else.
-    Drag-to-favorite and the mobile Favorites/All tabs were removed. Still needs a manual
+## Phase 4 — Quick access
+- [x] Pin / order endpoints; `GET /api/links/quick-access`
+- [x] `useQuickAccess()` with optimistic updates + rollback toasts
+- [x] Pin toggle on cards
+- [ ] `QuickAccessBar` with drag-to-reorder (vue-draggable-plus), touch tested
+  — redesigned after Phase 8: quick access is compact tiles, drag reorders them and nothing else.
+    Drag-to-pin and the mobile Favorites/All tabs were removed. Still needs a manual
     drag + touch check in a browser.
 - [x] ~~Mobile: UTabs Favorites / All~~ — dropped; the bar and the list share one page at every width
 
@@ -63,7 +63,7 @@ at 375px and 1280px, tick the boxes, commit. Use `/next-phase` to continue.
 - [ ] Responsive pass at 375 / 768 / 1280; dark mode pass
   — code audited (no hard-coded light-only colours; tables collapse to cards; tap targets
     raised to 40px). The visual pass at each width, in both themes, still needs a browser.
-- [x] Keyboard access for favorites (menu move up/down), focus states, aria-labels on icon buttons
+- [x] Keyboard access for quick access (menu move earlier/later), focus states, aria-labels on icon buttons
   — focus rings are Nuxt UI defaults and were not checked visually.
 - [x] Error pages (`error.vue`), 404
 - [x] README with setup, seed, deploy notes

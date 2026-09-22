@@ -40,7 +40,7 @@
 }
 
 :root {
-  --ui-radius: 0.625rem;
+  --ui-radius: 0.375rem;
 }
 
 body {
@@ -53,6 +53,25 @@ body {
   background-image:
     radial-gradient(120% 120% at 0% 0%, var(--color-ke-lime-500) 0%, transparent 55%),
     linear-gradient(135deg, var(--color-ke-700) 0%, var(--color-ke-deep) 100%);
+}
+
+/*
+ * A category's colour is passed in as `--cat`, so one rule covers every swatch and both themes
+ * without generating a class per colour.
+ */
+.ke-cat {
+  background-color: color-mix(in oklab, var(--cat) 14%, transparent);
+  border-color: color-mix(in oklab, var(--cat) 32%, transparent);
+  color: color-mix(in oklab, var(--cat) 84%, black);
+}
+
+.dark .ke-cat {
+  background-color: color-mix(in oklab, var(--cat) 20%, transparent);
+  color: color-mix(in oklab, var(--cat) 55%, white);
+}
+
+.ke-cat-fill {
+  background-color: var(--cat);
 }
 
 /* Cards lift slightly on hover so the grid feels responsive to the pointer. */

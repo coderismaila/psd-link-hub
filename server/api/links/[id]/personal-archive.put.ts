@@ -21,10 +21,10 @@ export default defineEventHandler(async (event) => {
 
   const now = new Date()
 
-  // Hiding a link also drops it out of the user's favorites; restoring does not put it back,
+  // Hiding a link also drops it out of the user's quick access; restoring does not put it back,
   // which matches what "archive this for me" reads as.
   const values = archived
-    ? { isArchived: true, archivedAt: now, isFavorite: false, favoriteOrder: null }
+    ? { isArchived: true, archivedAt: now, isQuickAccess: false, quickAccessOrder: null }
     : { isArchived: false, archivedAt: null }
 
   await db

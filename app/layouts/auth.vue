@@ -2,7 +2,7 @@
   <div class="grid min-h-svh lg:grid-cols-2">
     <!-- Brand panel: the logo's own diagonal, echoed behind the wordmark. -->
     <div class="ke-brand-gradient relative hidden flex-col justify-between overflow-hidden p-10 lg:flex">
-      <div class="relative z-10 rounded-xl bg-white/95 px-5 py-4 shadow-lg w-fit">
+      <div class="relative z-10 rounded-lg bg-white/95 px-5 py-4 shadow-lg w-fit">
         <BrandMark height="h-10" />
       </div>
 

@@ -1,20 +1,17 @@
 <script setup lang="ts">
-import type { BadgeProps } from '@nuxt/ui'
-import { CATEGORY_COLORS, type CategoryColor } from '#shared/schemas/category'
+import { categoryHex } from '#shared/schemas/category'
 import type { CategoryDTO } from '#shared/types/link'
 
 const props = defineProps<{ category: CategoryDTO }>()
 
-// Categories store a Nuxt UI colour token. Fall back to neutral if an unknown value was stored.
-const color = computed<BadgeProps['color']>(() =>
-  CATEGORY_COLORS.includes(props.category.color as CategoryColor)
-    ? props.category.color as CategoryColor
-    : 'neutral'
-)
+const hex = computed(() => categoryHex(props.category.color))
 </script>
 
 <template>
-  <UBadge :color="color" variant="subtle" size="sm">
+  <span
+    class="ke-cat inline-flex items-center rounded-md border px-1.5 py-0.5 text-xs font-medium"
+    :style="{ '--cat': hex }"
+  >
     {{ category.name }}
-  </UBadge>
+  </span>
 </template>

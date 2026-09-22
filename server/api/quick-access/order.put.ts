@@ -1,23 +1,23 @@
 import { db, schema } from '@nuxthub/db'
 import { and, eq, inArray } from 'drizzle-orm'
-import { favoriteOrderBodySchema } from '#shared/schemas/favorite'
+import { quickAccessOrderBodySchema } from '#shared/schemas/quick-access'
 
 export default defineEventHandler(async (event) => {
   const user = await requireAuthUser(event)
-  const { linkIds } = await readValidatedBody(event, favoriteOrderBodySchema.parse)
+  const { linkIds } = await readValidatedBody(event, quickAccessOrderBodySchema.parse)
 
   if (!linkIds.length) {
     return { updated: 0 }
   }
 
-  // Only rows this user has actually favorited are touched, so a crafted list of ids cannot
+  // Only rows this user has actually pinned are touched, so a crafted list of ids cannot
   // reach anyone else's preferences.
   const owned = await db
     .select({ linkId: schema.userLinkPrefs.linkId })
     .from(schema.userLinkPrefs)
     .where(and(
       eq(schema.userLinkPrefs.userId, user.id),
-      eq(schema.userLinkPrefs.isFavorite, true),
+      eq(schema.userLinkPrefs.isQuickAccess, true),
       inArray(schema.userLinkPrefs.linkId, linkIds)
     ))
 
@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
     .filter(linkId => ownedIds.has(linkId))
     .map((linkId, index) => db
       .update(schema.userLinkPrefs)
-      .set({ favoriteOrder: index * 10, updatedAt })
+      .set({ quickAccessOrder: index * 10, updatedAt })
       .where(and(
         eq(schema.userLinkPrefs.userId, user.id),
         eq(schema.userLinkPrefs.linkId, linkId)

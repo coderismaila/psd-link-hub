@@ -2,9 +2,9 @@ import { db, schema } from '@nuxthub/db'
 import { eq } from 'drizzle-orm'
 
 const SAMPLE_CATEGORIES = [
-  { name: 'Daily Logs', color: 'info' },
-  { name: 'Monthly Reports', color: 'success' },
-  { name: 'Reference', color: 'warning' }
+  { name: 'Daily Logs', color: '#0284c7' },
+  { name: 'Monthly Reports', color: '#16a34a' },
+  { name: 'Reference', color: '#ca8a04' }
 ] as const
 
 /** Shifts a (year, month) pair by `delta` months, keeping month in 1-12. */

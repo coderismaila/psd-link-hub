@@ -5,11 +5,6 @@ export default defineAppConfig({
       primary: 'ke',
       secondary: 'ke-lime',
       neutral: 'zinc'
-    },
-    card: {
-      slots: {
-        root: 'rounded-xl'
-      }
     }
   }
 })

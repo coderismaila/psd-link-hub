@@ -255,7 +255,7 @@ function formatDate(value: string) {
     <ConfirmModal
       v-model:open="confirmOpen"
       title="Delete this link?"
-      :description="`${deleting?.name} will be removed for everyone, along with their favorites for it. This cannot be undone.`"
+      :description="`${deleting?.name} will be removed for everyone, along with everyone's quick-access entries for it. This cannot be undone.`"
       confirm-label="Delete"
       :loading="deletePending"
       @confirm="confirmDelete"

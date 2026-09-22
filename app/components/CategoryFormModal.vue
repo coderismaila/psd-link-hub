@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FormSubmitEvent } from '@nuxt/ui'
-import { CATEGORY_COLORS, categoryBodySchema, type CategoryBody } from '#shared/schemas/category'
+import { categoryBodySchema, type CategoryBody } from '#shared/schemas/category'
 
 const open = defineModel<boolean>('open', { required: true })
 
@@ -22,11 +22,6 @@ watch(open, (isOpen) => {
     Object.assign(state, props.initial)
   }
 })
-
-const colorItems = CATEGORY_COLORS.map(color => ({
-  label: color.charAt(0).toUpperCase() + color.slice(1),
-  value: color
-}))
 
 async function onSubmit(event: FormSubmitEvent<CategoryBody>) {
   loading.value = true
@@ -77,12 +72,7 @@ async function onSubmit(event: FormSubmitEvent<CategoryBody>) {
         </UFormField>
 
         <UFormField label="Colour" name="color" required>
-          <USelectMenu
-            :model-value="colorItems.find(item => item.value === state.color)"
-            :items="colorItems"
-            class="w-full"
-            @update:model-value="state.color = $event?.value"
-          />
+          <ColorSwatchPicker v-model="state.color" />
         </UFormField>
 
         <div class="flex items-center gap-2">

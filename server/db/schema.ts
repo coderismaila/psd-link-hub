@@ -46,14 +46,17 @@ export const links = sqliteTable('links', {
 export const userLinkPrefs = sqliteTable('user_link_prefs', {
   userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   linkId: integer('link_id').notNull().references(() => links.id, { onDelete: 'cascade' }),
-  isFavorite: integer('is_favorite', { mode: 'boolean' }).notNull().default(false),
-  favoriteOrder: integer('favorite_order'), // gaps allowed; sort ASC NULLS LAST
+  // The feature was renamed to "quick access" after these columns shipped. Drizzle lets the
+  // property differ from the column, so the code reads the new way with no migration; the SQL
+  // names can be brought in line later with an interactive `nuxt db generate`.
+  isQuickAccess: integer('is_favorite', { mode: 'boolean' }).notNull().default(false),
+  quickAccessOrder: integer('favorite_order'), // gaps allowed; sort ASC NULLS LAST
   isArchived: integer('is_archived', { mode: 'boolean' }).notNull().default(false),
   archivedAt: integer('archived_at', { mode: 'timestamp' }),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()).$onUpdateFn(() => new Date())
 }, t => [
   primaryKey({ columns: [t.userId, t.linkId] }),
-  index('prefs_user_fav_idx').on(t.userId, t.isFavorite)
+  index('prefs_user_fav_idx').on(t.userId, t.isQuickAccess)
 ])
 
 export const settings = sqliteTable('settings', {

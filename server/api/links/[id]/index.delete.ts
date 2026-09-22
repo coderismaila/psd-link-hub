@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
 
   const id = idParamSchema.parse(getRouterParam(event, 'id'))
 
-  // Everyone's favorites and personal archive rows for this link go with it (prefs cascade).
+  // Everyone's quick-access and personal archive rows for this link go with it (prefs cascade).
   const deleted = await db
     .delete(schema.links)
     .where(eq(schema.links.id, id))

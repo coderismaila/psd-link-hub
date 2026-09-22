@@ -1,30 +1,13 @@
 <script setup lang="ts">
 import { VueDraggable } from 'vue-draggable-plus'
 import type { DropdownMenuItem } from '@nuxt/ui'
+import { categoryHex } from '#shared/schemas/category'
 import type { LinkWithPrefs } from '#shared/types/link'
 
-const { favorites, pending, toggleFavorite, handleReorder, moveFavorite } = useFavorites()
+const { quickAccess, pending, toggleQuickAccess, handleReorder, moveQuickAccess } = useQuickAccess()
 
 const toast = useToast()
 const { copy } = useClipboard()
-
-/**
- * Literal class names so Tailwind can see every one of them. A category stores a Nuxt UI colour
- * token; anything unrecognised falls back to neutral.
- */
-const DOT_CLASSES: Record<string, string> = {
-  primary: 'bg-primary',
-  secondary: 'bg-secondary',
-  success: 'bg-success',
-  info: 'bg-info',
-  warning: 'bg-warning',
-  error: 'bg-error',
-  neutral: 'bg-inverted'
-}
-
-function dotClass(color: string) {
-  return DOT_CLASSES[color] ?? DOT_CLASSES.neutral
-}
 
 async function copyUrl(link: LinkWithPrefs) {
   await copy(link.url)
@@ -41,20 +24,20 @@ function tileMenu(link: LinkWithPrefs, index: number): DropdownMenuItem[][] {
         label: 'Move earlier',
         icon: 'i-lucide-arrow-left',
         disabled: index === 0,
-        onSelect: () => moveFavorite(link, -1)
+        onSelect: () => moveQuickAccess(link, -1)
       },
       {
         label: 'Move later',
         icon: 'i-lucide-arrow-right',
-        disabled: index === favorites.value.length - 1,
-        onSelect: () => moveFavorite(link, 1)
+        disabled: index === quickAccess.value.length - 1,
+        onSelect: () => moveQuickAccess(link, 1)
       }
     ],
     [
       {
-        label: 'Remove from favorites',
-        icon: 'i-lucide-star-off',
-        onSelect: () => toggleFavorite(link)
+        label: 'Remove from quick access',
+        icon: 'i-lucide-pin-off',
+        onSelect: () => toggleQuickAccess(link)
       }
     ]
   ]
@@ -62,14 +45,14 @@ function tileMenu(link: LinkWithPrefs, index: number): DropdownMenuItem[][] {
 </script>
 
 <template>
-  <section aria-labelledby="favorites-heading" class="flex flex-col gap-2">
+  <section aria-labelledby="quick-access-heading" class="flex flex-col gap-2">
     <div class="flex items-center gap-2">
-      <UIcon name="i-lucide-star" class="size-4 text-primary" />
-      <h2 id="favorites-heading" class="text-sm font-semibold tracking-wide text-muted uppercase">
-        Favorites
+      <UIcon name="i-lucide-pin" class="size-4 text-primary" />
+      <h2 id="quick-access-heading" class="text-sm font-semibold tracking-wide text-muted uppercase">
+        Quick access
       </h2>
-      <UBadge v-if="favorites.length" color="neutral" variant="subtle" size="sm">
-        {{ favorites.length }}
+      <UBadge v-if="quickAccess.length" color="neutral" variant="subtle" size="sm">
+        {{ quickAccess.length }}
       </UBadge>
     </div>
 
@@ -82,9 +65,9 @@ function tileMenu(link: LinkWithPrefs, index: number): DropdownMenuItem[][] {
       outside and there is no second copy of a card to keep in step.
     -->
     <VueDraggable
-      v-else-if="favorites.length"
-      v-model="favorites"
-      :group="{ name: 'favorites', pull: false, put: false }"
+      v-else-if="quickAccess.length"
+      v-model="quickAccess"
+      :group="{ name: 'quick-access', pull: false, put: false }"
       handle=".drag-handle"
       :delay="150"
       :delay-on-touch-only="true"
@@ -93,9 +76,9 @@ function tileMenu(link: LinkWithPrefs, index: number): DropdownMenuItem[][] {
       @update="handleReorder"
     >
       <div
-        v-for="(link, index) in favorites"
+        v-for="(link, index) in quickAccess"
         :key="link.id"
-        class="ke-card group flex items-center gap-1 rounded-xl border border-default bg-gradient-to-br from-primary/8 to-transparent pe-1 ps-1"
+        class="ke-card group flex items-center gap-1 rounded-md border border-default bg-gradient-to-br from-primary/8 to-transparent pe-1 ps-1"
       >
         <UButton
           class="drag-handle min-h-10 min-w-8 cursor-grab"
@@ -115,8 +98,8 @@ function tileMenu(link: LinkWithPrefs, index: number): DropdownMenuItem[][] {
         >
           <span class="flex items-center gap-1.5">
             <span
-              class="size-2 shrink-0 rounded-full"
-              :class="dotClass(link.category.color)"
+              class="ke-cat-fill size-2 shrink-0 rounded-full"
+              :style="{ '--cat': categoryHex(link.category.color) }"
               :title="link.category.name"
             />
             <span class="truncate text-sm font-semibold tracking-tight group-hover:text-primary">{{ link.name }}</span>
@@ -139,11 +122,11 @@ function tileMenu(link: LinkWithPrefs, index: number): DropdownMenuItem[][] {
 
     <p
       v-else
-      class="rounded-xl border border-dashed border-default bg-elevated/30 px-4 py-4 text-sm text-muted"
+      class="rounded-md border border-dashed border-default bg-elevated/30 px-4 py-4 text-sm text-muted"
     >
-      No favorites yet — tap the
-      <UIcon name="i-lucide-star" class="mx-0.5 inline-block size-4 align-text-bottom" />
-      on any link to pin it here.
+      Nothing pinned yet — tap the
+      <UIcon name="i-lucide-pin" class="mx-0.5 inline-block size-4 align-text-bottom" />
+      on any link to keep it here.
     </p>
   </section>
 </template>

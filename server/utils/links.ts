@@ -36,8 +36,8 @@ export const linkWithPrefsColumns = {
   updatedAt: schema.links.updatedAt,
   categoryName: schema.categories.name,
   categoryColor: schema.categories.color,
-  isFavorite: schema.userLinkPrefs.isFavorite,
-  favoriteOrder: schema.userLinkPrefs.favoriteOrder,
+  isQuickAccess: schema.userLinkPrefs.isQuickAccess,
+  quickAccessOrder: schema.userLinkPrefs.quickAccessOrder,
   isPersonallyArchived: schema.userLinkPrefs.isArchived
 } as const
 
@@ -48,8 +48,8 @@ export const linkWithPrefsColumns = {
 export type LinkRow = Omit<typeof schema.links.$inferSelect, 'archivedByUserId'> & {
   categoryName: string
   categoryColor: string
-  isFavorite: boolean | null
-  favoriteOrder: number | null
+  isQuickAccess: boolean | null
+  quickAccessOrder: number | null
   isPersonallyArchived: boolean | null
 }
 
@@ -71,8 +71,8 @@ export function toLinkWithPrefs(row: LinkRow): LinkWithPrefs {
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
     category: { id: row.categoryId, name: row.categoryName, color: row.categoryColor },
-    isFavorite: row.isFavorite ?? false,
-    favoriteOrder: row.favoriteOrder,
+    isQuickAccess: row.isQuickAccess ?? false,
+    quickAccessOrder: row.quickAccessOrder,
     isPersonallyArchived: row.isPersonallyArchived ?? false,
     periodLabel: periodLabel(row)
   }

@@ -16,8 +16,8 @@ sheets archived automatically and each person's most-used sheets one tap away.
 |----------------------------------------------|:-----:|:------:|
 | Log in / log out                             | ✅ | ✅ |
 | View & search active links, open in new tab  | ✅ | ✅ |
-| Star / unstar a link (personal favorite)     | ✅ | ✅ |
-| Drag a link into Favorites; reorder favorites| ✅ | ✅ |
+| Pin / unpin a link (personal quick access)   | ✅ | ✅ |
+| Reorder their quick-access links             | ✅ | ✅ |
 | Personally archive / restore a link          | ✅ | ✅ |
 | View archive (global + personal)             | ✅ | ✅ |
 | Create / edit / delete links                 | ✅ | ❌ |
@@ -33,7 +33,7 @@ There is **no self sign-up**. The first admin is created by a seed task.
 **Link** — `name`, `description`, `url`, `category`, `periodType` (`monthly` | `yearly`),
 period (`year` + `month` for monthly, `year` for yearly), `createdAt` (automatic), `createdBy`.
 
-**Category** — admin-managed list (name, colour). Shown as a dropdown (`USelectMenu`) on the link
+**Category** — admin-managed list (name, colour picked from a swatch palette). Shown as a dropdown (`USelectMenu`) on the link
 form and as a filter. A category in use cannot be deleted until its links are reassigned.
 
 **Global archive** — the link is archived for everyone (`links.status = 'archived'`). Done by
@@ -42,9 +42,10 @@ an admin, or by the system's auto-archive for monthly links.
 **Personal archive** — a user hides a link from *their own* active view only. Other users
 are unaffected. Restorable at any time by that user.
 
-**Favorites** — per-user. Added by the star button or by dragging a link onto the Favorites
-zone. Favorites keep a user-defined order (drag to reorder). A globally archived link drops
-out of Favorites automatically (the preference is kept, so restoring the link restores the favorite).
+**Quick access** — per-user. A link is pinned with the pin button on its card and appears as a
+compact tile in the bar above the list. Tiles keep a user-defined order (drag to reorder). A
+globally archived link drops out of quick access automatically (the preference is kept, so
+restoring the link restores the tile).
 
 ## 5. Archive settings (admin, global)
 - **Mode:** `auto` (default) or `manual`.
@@ -69,17 +70,17 @@ a bulk "Archive overdue" action instead.
 - Each item shows name, category badge, period label (e.g. "Sep 2026" / "2026"), created date, description (truncated), star, "Open" button (new tab, `rel="noopener"`), copy-link, and a menu (archive for me; admin: edit, archive globally, delete).
 - Default sort: newest period first, then name.
 
-**US-3 Favorites.** As a user I star a link and it is pinned to the Favorites bar at the top of the page.
-- Favorites are compact tiles, not a second copy of the card: name, category colour and period.
+**US-3 Quick access.** As a user I pin a link and it appears in the Quick access bar at the top of the page.
+- Pinned links are compact tiles, not a second copy of the card: name, category colour and period.
   Tapping a tile opens the sheet in a new tab.
-- The star on a card is the only way to favorite or unfavorite. A favorited link shows a filled
-  star in the list; it is never rendered twice on the page.
-- Dragging a tile within the bar reorders the favorites; order survives reload. Works with touch
+- The pin on a card is the only way to pin or unpin. A pinned link shows a filled pin in the list;
+  it is never rendered twice on the page.
+- Dragging a tile within the bar reorders quick access; order survives reload. Works with touch
   (long-press ~150 ms). "Move earlier / Move later" in the tile menu does the same thing without a
   pointer, for keyboard and screen-reader users.
 - Optimistic update; on API failure refetch and show a toast.
 
-**US-4 Personal archive.** As a user I archive a link for myself; it disappears from my active list and favorites, and appears in Archive → "Archived by me" with a Restore action.
+**US-4 Personal archive.** As a user I archive a link for myself; it disappears from my active list and quick access, and appears in Archive → "Archived by me" with a Restore action.
 
 **US-5 Archive page.** Tabs: "Archived by me" and "Archived for everyone". Same filters. Admin sees Restore on global items.
 

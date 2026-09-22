@@ -31,8 +31,8 @@ export interface LinkDTO {
 /** A link joined with its category and with the calling user's own preferences. */
 export interface LinkWithPrefs extends LinkDTO {
   category: CategoryDTO
-  isFavorite: boolean
-  favoriteOrder: number | null
+  isQuickAccess: boolean
+  quickAccessOrder: number | null
   isPersonallyArchived: boolean
   periodLabel: string
 }

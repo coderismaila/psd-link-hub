@@ -61,7 +61,7 @@ export const users = sqliteTable('users', {
 export const categories = sqliteTable('categories', {
   id: integer().primaryKey({ autoIncrement: true }),
   name: text().notNull().unique(),
-  color: text().notNull().default('neutral'),    // Nuxt UI color token for UBadge
+  color: text().notNull().default('#475569'),    // hex, picked from a palette of swatches
   ...timestamps,
 })
 
@@ -89,14 +89,15 @@ export const links = sqliteTable('links', {
 export const userLinkPrefs = sqliteTable('user_link_prefs', {
   userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   linkId: integer('link_id').notNull().references(() => links.id, { onDelete: 'cascade' }),
-  isFavorite: integer('is_favorite', { mode: 'boolean' }).notNull().default(false),
-  favoriteOrder: integer('favorite_order'),      // gaps allowed; sort ASC NULLS LAST
+  // Columns keep their original names; the feature was renamed to "quick access" later.
+  isQuickAccess: integer('is_favorite', { mode: 'boolean' }).notNull().default(false),
+  quickAccessOrder: integer('favorite_order'),   // gaps allowed; sort ASC NULLS LAST
   isArchived: integer('is_archived', { mode: 'boolean' }).notNull().default(false),
   archivedAt: integer('archived_at', { mode: 'timestamp' }),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()).$onUpdateFn(() => new Date()),
 }, t => [
   primaryKey({ columns: [t.userId, t.linkId] }),
-  index('prefs_user_fav_idx').on(t.userId, t.isFavorite),
+  index('prefs_user_fav_idx').on(t.userId, t.isQuickAccess),
 ])
 
 export const settings = sqliteTable('settings', {
@@ -147,16 +148,16 @@ All handlers call an auth guard first. Response shapes are typed in `shared/type
 |---|---|---|
 | POST `/api/auth/login` | public | Log in |
 | GET `/api/links` | user | Active links merged with caller's prefs. Query: `q, categoryId, periodType, year, month`. Excludes global-archived and caller's personal-archived. Calls `maybeRunAutoArchive()` first. |
-| GET `/api/links/favorites` | user | Caller's favorites (active only), ordered by `favoriteOrder` |
+| GET `/api/links/quick-access` | user | Caller's pinned links (active only), ordered by `quickAccessOrder` |
 | GET `/api/links/archived` | user | Query `scope=mine\|global` + same filters |
 | POST `/api/links` | admin | Create (`createdBy` = caller) |
 | PATCH `/api/links/[id]` | admin | Update |
 | DELETE `/api/links/[id]` | admin | Delete (prefs cascade) |
 | POST `/api/links/[id]/archive` | admin | Global archive (`archivedBy='admin'`) |
 | POST `/api/links/[id]/restore` | admin | Global restore |
-| PUT `/api/links/[id]/favorite` | user | Body `{ favorite: boolean }`. On true, `favoriteOrder = max+1` |
-| PUT `/api/links/[id]/personal-archive` | user | Body `{ archived: boolean }`. Archiving also un-favorites |
-| PUT `/api/favorites/order` | user | Body `{ linkIds: number[] }` → rewrite `favoriteOrder` (index * 10) in one transaction/batch |
+| PUT `/api/links/[id]/quick-access` | user | Body `{ pinned: boolean }`. On true, `quickAccessOrder = max+1` |
+| PUT `/api/links/[id]/personal-archive` | user | Body `{ archived: boolean }`. Archiving also unpins |
+| PUT `/api/quick-access/order` | user | Body `{ linkIds: number[] }` → rewrite `quickAccessOrder` (index * 10) in one transaction/batch |
 | GET `/api/categories` | user | List with `linkCount` |
 | POST / PATCH / DELETE `/api/categories[/id]` | admin | CRUD; DELETE → 409 if `linkCount > 0` |
 | GET / POST `/api/admin/users` | admin | List (never include `passwordHash`) / create |
@@ -185,7 +186,7 @@ All handlers call an auth guard first. Response shapes are typed in `shared/type
 | Route | Layout | Content |
 |---|---|---|
 | `/login` | auth | UCard + UForm (email, password) |
-| `/` | default | Favorites zone (top) + filters + link grid/list. On mobile, UTabs: Favorites / All |
+| `/` | default | Quick access bar (top) + filters + link grid. One page at every width |
 | `/archive` | default | UTabs: Archived by me / Archived for everyone |
 | `/admin/links` | default | UTable with actions, "New link" → `LinkFormModal` |
 | `/admin/categories` | default | UTable + inline create/edit modal |
@@ -198,31 +199,31 @@ admin section only when `user.role === 'admin'`, user menu with colour-mode togg
 
 ## 7. Components
 
-- `LinkCard.vue` — card for the grid; props `link: LinkWithPrefs`; emits `toggle-favorite`, `archive-mine`, `edit`, `archive-global`, `delete`. No drag handle: cards are never dragged.
+- `LinkCard.vue` — card for the grid; props `link: LinkWithPrefs`; emits `toggle-quick-access`, `archive-mine`, `edit`, `archive-global`, `delete`. No drag handle: cards are never dragged.
 - `LinkList.vue` — responsive grid of `LinkCard`s. A plain list, not a drag source.
-- `FavoritesBar.vue` — compact tiles above the list; reorder-only `VueDraggable`. Empty state "No favorites yet. Tap the star on any link to pin it here."
+- `QuickAccessBar.vue` — compact tiles above the list; reorder-only `VueDraggable`. Empty state "Nothing pinned yet".
 - `LinkFilters.vue` — UInput search (debounced 250 ms), USelectMenu category, period type, month/year; synced to route query.
 - `LinkFormModal.vue` — UModal + UForm with zod schema from `shared/schemas/link.ts`.
 - `CategoryBadge.vue`, `PeriodBadge.vue`, `EmptyState.vue`, `ConfirmModal.vue`.
 
-## 8. Favorites and reordering (`vue-draggable-plus`)
+## 8. Quick access and reordering (`vue-draggable-plus`)
 
-Favorites are a launcher, not a second catalog. A link appears once on the page — as a card in the
+Quick access is a launcher, not a second catalog. A link appears once on the page — as a card in the
 list — and favoriting pins a compact tile to the bar above it. Dragging is used for one thing only:
 putting those tiles in the order the user wants.
 
 ```vue
-<!-- FavoritesBar.vue: reorder only — nothing enters or leaves by drag -->
-<VueDraggable v-model="favorites" :group="{ name: 'favorites', pull: false, put: false }"
+<!-- QuickAccessBar.vue: reorder only — nothing enters or leaves by drag -->
+<VueDraggable v-model="quickAccess" :group="{ name: 'quick-access', pull: false, put: false }"
   handle=".drag-handle" :delay="150" :delay-on-touch-only="true"
   @update="handleReorder" ghost-class="opacity-40">
 ```
 
-- `handleReorder()`: `PUT /api/favorites/order` with the current id list.
-- `toggleFavorite(link)`: the star on a card, the only way in or out of the bar.
-- `moveFavorite(link, ±1)`: "Move earlier / Move later" in the tile menu — the same result without
+- `handleReorder()`: `PUT /api/quick-access/order` with the current id list.
+- `toggleQuickAccess(link)`: the pin on a card, the only way in or out of the bar.
+- `moveQuickAccess(link, ±1)`: "Move earlier / Move later" in the tile menu — the same result without
   a pointer.
-- All in `useFavorites()`, applied locally first and refetched on failure with a toast. The cached
+- All in `useQuickAccess()`, applied locally first and refetched on failure with a toast. The cached
   browse list has its row replaced (not mutated) so the card's star updates: Nuxt 4 returns
   `useFetch` data in a shallow ref, which ignores nested writes.
 
@@ -232,8 +233,8 @@ putting those tiles in the order the user wants.
 export type Link = typeof schema.links.$inferSelect            // server side
 export interface LinkWithPrefs extends LinkDTO {
   category: { id: number, name: string, color: string }
-  isFavorite: boolean
-  favoriteOrder: number | null
+  isQuickAccess: boolean
+  quickAccessOrder: number | null
   isPersonallyArchived: boolean
   periodLabel: string
 }
