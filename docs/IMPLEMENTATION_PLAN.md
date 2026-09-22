@@ -11,11 +11,11 @@ at 375px and 1280px, tick the boxes, commit. Use `/next-phase` to continue.
 - [x] Dev server boots with a placeholder page
 
 ## Phase 1 — Database
-- [ ] `server/db/schema.ts` exactly as ARCHITECTURE.md §2
-- [ ] `npx nuxt db generate` → migration committed
-- [ ] `server/utils/settings.ts` typed getters/setters with defaults
-- [ ] `db:seed` task: first admin from env (skip if any admin exists) + 3 sample categories + 4 sample links (2 monthly: last month & this month; 2 yearly)
-- [ ] Verify tables in Nuxt DevTools → Database
+- [x] `server/db/schema.ts` exactly as ARCHITECTURE.md §2
+- [x] `npx nuxt db generate` → migration committed
+- [x] `server/utils/settings.ts` typed getters/setters with defaults
+- [x] `db:seed` task: first admin from env (skip if any admin exists) + 3 sample categories + 4 sample links (2 monthly: last month & this month; 2 yearly)
+- [x] Verify tables in Nuxt DevTools → Database
 
 ## Phase 2 — Auth
 - [ ] `#auth-utils` User type augmentation
