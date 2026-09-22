@@ -25,11 +25,11 @@ at 375px and 1280px, tick the boxes, commit. Use `/next-phase` to continue.
 - [x] Deactivated user is logged out on next request
 
 ## Phase 3 — Layout & read-only browsing
-- [ ] `layouts/default.vue` with UDashboard components, role-aware nav, colour-mode toggle
-- [ ] `shared/utils/period.ts` + zod schemas in `shared/schemas`
-- [ ] `GET /api/categories`, `GET /api/links` (filters, prefs merge)
-- [ ] `LinkFilters`, `LinkCard`, `LinkList`; filters synced to URL
-- [ ] Open (new tab) + copy link; empty & loading states (USkeleton)
+- [x] `layouts/default.vue` with UDashboard components, role-aware nav, colour-mode toggle
+- [x] `shared/utils/period.ts` + zod schemas in `shared/schemas`
+- [x] `GET /api/categories`, `GET /api/links` (filters, prefs merge)
+- [x] `LinkFilters`, `LinkCard`, `LinkList`; filters synced to URL
+- [x] Open (new tab) + copy link; empty & loading states (USkeleton)
 
 ## Phase 4 — Favorites
 - [ ] Favorite / order endpoints; `GET /api/links/favorites`

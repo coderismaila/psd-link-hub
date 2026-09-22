@@ -4,6 +4,9 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ['@nuxt/ui', '@nuxthub/core', 'nuxt-auth-utils', '@vueuse/nuxt', '@nuxt/eslint'],
   css: ['~/assets/css/main.css'],
+  // Components are named after the file alone, so `components/links/LinkCard.vue` is `<LinkCard>`
+  // rather than `<LinksLinkCard>`.
+  components: [{ path: '~/components', pathPrefix: false }],
   hub: {
     db: 'sqlite' // local file: .data/db/sqlite.db (libsql)
   },
