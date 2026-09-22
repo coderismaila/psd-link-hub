@@ -54,8 +54,8 @@ at 375px and 1280px, tick the boxes, commit. Use `/next-phase` to continue.
 - [x] Unit tests for `period.ts` (month end, December → January, grace 0, timezone edge)
 
 ## Phase 7 — Admin: users
-- [ ] Users endpoints (no `passwordHash` in responses) + self/last-admin protections
-- [ ] `/admin/users` table + create/edit slideover + reset password
+- [x] Users endpoints (no `passwordHash` in responses) + self/last-admin protections
+- [x] `/admin/users` table + create/edit slideover + reset password
 
 ## Phase 8 — Polish
 - [ ] Responsive pass at 375 / 768 / 1280; dark mode pass
