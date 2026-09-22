@@ -1,21 +1,19 @@
 import { db, schema } from '@nuxthub/db'
-import { and, asc, desc, eq, isNull, or, type SQL } from 'drizzle-orm'
-import { linkFiltersSchema } from '#shared/schemas/link'
+import { and, asc, desc, eq, type SQL } from 'drizzle-orm'
+import { archivedQuerySchema } from '#shared/schemas/archive'
 import type { LinkWithPrefs } from '#shared/types/link'
 
 export default defineEventHandler(async (event): Promise<LinkWithPrefs[]> => {
   const user = await requireAuthUser(event)
-  const filters = await getValidatedQuery(event, linkFiltersSchema.parse)
+  const { scope, ...filters } = await getValidatedQuery(event, archivedQuerySchema.parse)
 
-  // Keeps auto-archive working where no cron is available. Browsing must not fail because a
-  // catch-up run did, so a failure here is logged and ignored.
-  try {
-    await maybeRunAutoArchive()
-  } catch (error) {
-    console.error('[links] Auto-archive catch-up failed:', error)
-  }
-
-  const conditions: SQL[] = [eq(schema.links.status, 'active')]
+  const conditions: SQL[] = [
+    scope === 'mine'
+      // The caller's own hidden links, whatever their global status.
+      ? eq(schema.userLinkPrefs.isArchived, true)
+      // Archived for everyone. Viewers may read these; only admins can restore them.
+      : eq(schema.links.status, 'archived')
+  ]
 
   if (filters.q) {
     conditions.push(searchCondition(filters.q))
@@ -37,13 +35,6 @@ export default defineEventHandler(async (event): Promise<LinkWithPrefs[]> => {
     conditions.push(eq(schema.links.periodMonth, filters.month))
   }
 
-  // Hide links this user has archived for themselves. A missing preference row means they have
-  // never touched the link, so it stays visible.
-  const notPersonallyArchived = or(
-    isNull(schema.userLinkPrefs.isArchived),
-    eq(schema.userLinkPrefs.isArchived, false)
-  )!
-
   const rows = await db
     .select(linkWithPrefsColumns)
     .from(schema.links)
@@ -55,9 +46,7 @@ export default defineEventHandler(async (event): Promise<LinkWithPrefs[]> => {
         eq(schema.userLinkPrefs.userId, user.id)
       )
     )
-    .where(and(...conditions, notPersonallyArchived))
-    // Newest period first, then name. SQLite sorts NULL lowest, so a yearly link (no month)
-    // lands after December of the same year.
+    .where(and(...conditions))
     .orderBy(desc(schema.links.periodYear), desc(schema.links.periodMonth), asc(schema.links.name))
 
   return rows.map(toLinkWithPrefs)

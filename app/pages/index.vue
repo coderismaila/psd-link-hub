@@ -24,8 +24,26 @@ watch(filters, (value) => {
   router.replace({ query })
 }, { deep: true })
 
-const { links, pending, error } = useLinks(filters)
-const { toggleFavorite } = useFavorites()
+const { links, pending, error, refresh } = useLinks(filters)
+const { toggleFavorite, refresh: refreshFavorites } = useFavorites()
+const { setPersonalArchive } = usePersonalArchive()
+const { setGlobalArchive } = useGlobalArchive()
+
+async function reload() {
+  await Promise.all([refresh(), refreshFavorites()])
+}
+
+async function archiveForMe(link: LinkWithPrefs) {
+  if (await setPersonalArchive(link, true)) {
+    await reload()
+  }
+}
+
+async function archiveForEveryone(link: LinkWithPrefs) {
+  if (await setGlobalArchive(link, true)) {
+    await reload()
+  }
+}
 
 /**
  * Narrow screens show one section at a time. The switch is plain CSS — `sm:block` wins over the
@@ -39,12 +57,9 @@ const tabs: TabsItem[] = [
   { label: 'All links', icon: 'i-lucide-link', value: 'all' }
 ]
 
-const toast = useToast()
-
-// The archive and admin actions arrive in Phases 5 and 6; until then the card menu says so
-// rather than silently doing nothing.
-function notYetAvailable() {
-  toast.add({ title: 'Coming in a later phase', icon: 'i-lucide-info', color: 'info' })
+// Editing and deleting live on /admin/links, which is where the card menu sends admins.
+function goToAdminLinks() {
+  return navigateTo('/admin/links')
 }
 </script>
 
@@ -59,10 +74,10 @@ function notYetAvailable() {
 
     <div :class="[mobileTab === 'favorites' ? 'block' : 'hidden', 'sm:block']">
       <FavoritesZone
-        @archive-mine="notYetAvailable"
-        @edit="notYetAvailable"
-        @archive-global="notYetAvailable"
-        @delete="notYetAvailable"
+        @archive-mine="archiveForMe"
+        @edit="goToAdminLinks"
+        @archive-global="archiveForEveryone"
+        @delete="goToAdminLinks"
       />
     </div>
 
@@ -84,10 +99,10 @@ function notYetAvailable() {
           :links="links"
           :pending="pending"
           @toggle-favorite="toggleFavorite"
-          @archive-mine="notYetAvailable"
-          @edit="notYetAvailable"
-          @archive-global="notYetAvailable"
-          @delete="notYetAvailable"
+          @archive-mine="archiveForMe"
+          @edit="goToAdminLinks"
+          @archive-global="archiveForEveryone"
+          @delete="goToAdminLinks"
         >
           <template #empty>
             <EmptyState

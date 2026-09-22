@@ -46,12 +46,12 @@ at 375px and 1280px, tick the boxes, commit. Use `/next-phase` to continue.
 - [x] `/admin/links` table (cards on mobile)
 
 ## Phase 6 — Archive
-- [ ] Personal archive endpoint + "Archive for me" action
-- [ ] Global archive / restore endpoints (admin)
-- [ ] `runAutoArchive`, `maybeRunAutoArchive`, `archive:monthly` scheduled task
-- [ ] `/archive` page with both tabs and restore actions
-- [ ] `/admin/settings` (mode, grace days, include yearly, run now, last run, overdue list in manual mode)
-- [ ] Unit tests for `period.ts` (month end, December → January, grace 0, timezone edge)
+- [x] Personal archive endpoint + "Archive for me" action
+- [x] Global archive / restore endpoints (admin)
+- [x] `runAutoArchive`, `maybeRunAutoArchive`, `archive:monthly` scheduled task
+- [x] `/archive` page with both tabs and restore actions
+- [x] `/admin/settings` (mode, grace days, include yearly, run now, last run, overdue list in manual mode)
+- [x] Unit tests for `period.ts` (month end, December → January, grace 0, timezone edge)
 
 ## Phase 7 — Admin: users
 - [ ] Users endpoints (no `passwordHash` in responses) + self/last-admin protections
