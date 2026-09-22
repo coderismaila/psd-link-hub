@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import { VueDraggable } from 'vue-draggable-plus'
 import type { LinkWithPrefs } from '#shared/types/link'
 
-defineProps<{
+const props = defineProps<{
   links: LinkWithPrefs[]
   pending?: boolean
 }>()
@@ -14,7 +15,16 @@ const emit = defineEmits<{
   'delete': [link: LinkWithPrefs]
 }>()
 
-// Phase 4 wraps this grid in VueDraggable so cards can be dragged into the favorites zone.
+/**
+ * VueDraggable needs a list it owns. This one only ever clones out of here — `put: false` and
+ * `sort: false` mean nothing is dropped into it and nothing is reordered — so the copy never
+ * drifts from the prop.
+ */
+const items = ref<LinkWithPrefs[]>([...props.links])
+
+watch(() => props.links, (links) => {
+  items.value = [...links]
+})
 </script>
 
 <template>
@@ -34,9 +44,19 @@ const emit = defineEmits<{
     </div>
   </div>
 
-  <div v-else-if="links.length" class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+  <VueDraggable
+    v-else-if="items.length"
+    v-model="items"
+    :group="{ name: 'links', pull: 'clone', put: false }"
+    :sort="false"
+    handle=".drag-handle"
+    :delay="150"
+    :delay-on-touch-only="true"
+    :clone="(link: LinkWithPrefs) => ({ ...link })"
+    class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
+  >
     <LinkCard
-      v-for="link in links"
+      v-for="link in items"
       :key="link.id"
       :link="link"
       @toggle-favorite="emit('toggle-favorite', $event)"
@@ -45,7 +65,7 @@ const emit = defineEmits<{
       @archive-global="emit('archive-global', $event)"
       @delete="emit('delete', $event)"
     />
-  </div>
+  </VueDraggable>
 
   <slot v-else name="empty" />
 </template>

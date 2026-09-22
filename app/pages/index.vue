@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import type { TabsItem } from '@nuxt/ui'
 import { linkFiltersSchema, type LinkFilters } from '#shared/schemas/link'
-import type { LinkWithPrefs } from '#shared/types/link'
 
 useHead({ title: 'Links — PSD Link Hub' })
 
@@ -25,50 +25,79 @@ watch(filters, (value) => {
 }, { deep: true })
 
 const { links, pending, error } = useLinks(filters)
+const { toggleFavorite } = useFavorites()
+
+/**
+ * Narrow screens show one section at a time. The switch is plain CSS — `sm:block` wins over the
+ * hidden class at the breakpoint — so the server and the browser render the same markup and both
+ * sections keep a single instance.
+ */
+const mobileTab = ref('favorites')
+
+const tabs: TabsItem[] = [
+  { label: 'Favorites', icon: 'i-lucide-star', value: 'favorites' },
+  { label: 'All links', icon: 'i-lucide-link', value: 'all' }
+]
 
 const toast = useToast()
 
-// Favorites and the archive actions arrive in Phases 4 and 6; until then the card actions that
-// need them are acknowledged rather than silently doing nothing.
+// The archive and admin actions arrive in Phases 5 and 6; until then the card menu says so
+// rather than silently doing nothing.
 function notYetAvailable() {
   toast.add({ title: 'Coming in a later phase', icon: 'i-lucide-info', color: 'info' })
-}
-
-function onToggleFavorite(_link: LinkWithPrefs) {
-  notYetAvailable()
 }
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
-    <LinkFilters v-model="filters" />
-
-    <UAlert
-      v-if="error"
-      color="error"
-      variant="subtle"
-      icon="i-lucide-triangle-alert"
-      title="Could not load links"
-      :description="error.statusMessage || 'Please try again.'"
+  <div class="flex flex-col gap-6">
+    <UTabs
+      v-model="mobileTab"
+      :items="tabs"
+      size="sm"
+      class="sm:hidden"
     />
 
-    <LinkList
-      v-else
-      :links="links"
-      :pending="pending"
-      @toggle-favorite="onToggleFavorite"
-      @archive-mine="notYetAvailable"
-      @edit="notYetAvailable"
-      @archive-global="notYetAvailable"
-      @delete="notYetAvailable"
-    >
-      <template #empty>
-        <EmptyState
-          icon="i-lucide-link"
-          title="No links found"
-          description="Try clearing the filters, or ask an admin to add the sheet you are looking for."
+    <div :class="[mobileTab === 'favorites' ? 'block' : 'hidden', 'sm:block']">
+      <FavoritesZone
+        @archive-mine="notYetAvailable"
+        @edit="notYetAvailable"
+        @archive-global="notYetAvailable"
+        @delete="notYetAvailable"
+      />
+    </div>
+
+    <div :class="[mobileTab === 'all' ? 'block' : 'hidden', 'sm:block']">
+      <div class="flex flex-col gap-4">
+        <LinkFilters v-model="filters" />
+
+        <UAlert
+          v-if="error"
+          color="error"
+          variant="subtle"
+          icon="i-lucide-triangle-alert"
+          title="Could not load links"
+          :description="error.statusMessage || 'Please try again.'"
         />
-      </template>
-    </LinkList>
+
+        <LinkList
+          v-else
+          :links="links"
+          :pending="pending"
+          @toggle-favorite="toggleFavorite"
+          @archive-mine="notYetAvailable"
+          @edit="notYetAvailable"
+          @archive-global="notYetAvailable"
+          @delete="notYetAvailable"
+        >
+          <template #empty>
+            <EmptyState
+              icon="i-lucide-link"
+              title="No links found"
+              description="Try clearing the filters, or ask an admin to add the sheet you are looking for."
+            />
+          </template>
+        </LinkList>
+      </div>
+    </div>
   </div>
 </template>

@@ -32,11 +32,12 @@ at 375px and 1280px, tick the boxes, commit. Use `/next-phase` to continue.
 - [x] Open (new tab) + copy link; empty & loading states (USkeleton)
 
 ## Phase 4 — Favorites
-- [ ] Favorite / order endpoints; `GET /api/links/favorites`
-- [ ] `useFavorites()` with optimistic updates + rollback toasts
-- [ ] Star toggle on cards
+- [x] Favorite / order endpoints; `GET /api/links/favorites`
+- [x] `useFavorites()` with optimistic updates + rollback toasts
+- [x] Star toggle on cards
 - [ ] `FavoritesZone` with drag-in from list and reorder (vue-draggable-plus), touch tested
-- [ ] Mobile: UTabs Favorites / All
+  — built; still needs a manual drag + touch check in a browser
+- [x] Mobile: UTabs Favorites / All
 
 ## Phase 5 — Admin: links & categories
 - [ ] Link CRUD endpoints + `LinkFormModal` (category dropdown, period fields, Sheets URL warning)
