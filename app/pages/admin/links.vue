@@ -1,18 +1,61 @@
 <script setup lang="ts">
 import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
-import { nextPeriod, type LinkBodyInput } from '#shared/schemas/link'
+import {
+  adminLinkFiltersSchema,
+  nextPeriod,
+  type AdminLinkFilters,
+  type LinkBodyInput
+} from '#shared/schemas/link'
 import type { LinkWithPrefs } from '#shared/types/link'
 
 definePageMeta({ middleware: 'admin' })
 useHead({ title: 'Manage links — PSD Link Hub' })
 
 const toast = useToast()
+const route = useRoute()
+const router = useRouter()
 
-// No filters here: the table is the full active list.
-const filters = ref({})
-const { links, pending, refresh } = useLinks(filters, { key: 'admin-links' })
+const parsed = adminLinkFiltersSchema.safeParse(route.query)
+const filters = ref<Partial<AdminLinkFilters>>(parsed.success ? parsed.data : { status: 'all' })
+
+watch(filters, (value) => {
+  const query = Object.fromEntries(
+    Object.entries(value)
+      .filter(([, entry]) => entry !== undefined && entry !== '')
+      .map(([key, entry]) => [key, String(entry)])
+  )
+
+  router.replace({ query })
+}, { deep: true })
+
+const query = computed(() =>
+  Object.fromEntries(
+    Object.entries(filters.value).filter(([, value]) => value !== undefined && value !== '')
+  )
+)
+
+const { data: links, status, refresh } = useFetch<LinkWithPrefs[]>('/api/admin/links', {
+  key: 'admin-links',
+  query,
+  default: () => [],
+  deep: true
+})
+
+const pending = computed(() => status.value === 'pending' && !links.value.length)
 
 const { categories } = useCategories()
+const { setGlobalArchive } = useGlobalArchive()
+
+const statusItems = [
+  { label: 'All', value: 'all' },
+  { label: 'Active', value: 'active' },
+  { label: 'Archived', value: 'archived' }
+]
+
+const counts = computed(() => ({
+  total: links.value.length,
+  archived: links.value.filter(link => link.status === 'archived').length
+}))
 
 const formOpen = ref(false)
 const editingId = ref<number | null>(null)
@@ -100,7 +143,15 @@ async function confirmDelete() {
   }
 }
 
+async function setArchived(link: LinkWithPrefs, archived: boolean) {
+  if (await setGlobalArchive(link, archived)) {
+    await refresh()
+  }
+}
+
 function rowMenu(link: LinkWithPrefs): DropdownMenuItem[][] {
+  const archived = link.status === 'archived'
+
   return [
     [
       { label: 'Edit', icon: 'i-lucide-pencil', onSelect: () => openEdit(link) },
@@ -110,6 +161,19 @@ function rowMenu(link: LinkWithPrefs): DropdownMenuItem[][] {
         onSelect: () => openDuplicate(link)
       }
     ],
+    [
+      archived
+        ? {
+            label: 'Restore for everyone',
+            icon: 'i-lucide-undo-2',
+            onSelect: () => setArchived(link, false)
+          }
+        : {
+            label: 'Archive for everyone',
+            icon: 'i-lucide-archive',
+            onSelect: () => setArchived(link, true)
+          }
+    ],
     [{ label: 'Delete', icon: 'i-lucide-trash-2', color: 'error', onSelect: () => askDelete(link) }]
   ]
 }
@@ -118,27 +182,55 @@ const columns: TableColumn<LinkWithPrefs>[] = [
   { accessorKey: 'name', header: 'Name' },
   { accessorKey: 'categoryId', header: 'Category' },
   { accessorKey: 'periodLabel', header: 'Period' },
-  { accessorKey: 'createdAt', header: 'Added' },
+  { accessorKey: 'status', header: 'Status' },
   { id: 'actions', header: '' }
 ]
 
-function formatDate(value: string) {
+function formatDate(value: string | null) {
+  if (!value) return null
+
   return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
     .format(new Date(value))
+}
+
+/** Says who put a link in the archive, since the system does it on a schedule. */
+function archivedNote(link: LinkWithPrefs) {
+  const on = formatDate(link.archivedAt)
+  const by = link.archivedBy === 'system' ? 'automatically' : 'by an admin'
+
+  return on ? `Archived ${on} ${by}` : `Archived ${by}`
 }
 </script>
 
 <template>
   <div class="flex flex-col gap-4">
-    <div class="flex items-center justify-between gap-3">
-      <p class="text-sm text-muted">
-        {{ links.length }} active {{ links.length === 1 ? 'link' : 'links' }}
-      </p>
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <URadioGroup
+          :model-value="filters.status ?? 'all'"
+          :items="statusItems"
+          variant="table"
+          orientation="horizontal"
+          indicator="hidden"
+          size="sm"
+          :ui="{ fieldset: 'flex-row', item: 'h-9 items-center justify-center px-3 py-0 text-center' }"
+          @update:model-value="filters = { ...filters, status: $event as AdminLinkFilters['status'] }"
+        />
+
+        <p class="text-sm text-muted">
+          {{ counts.total }} {{ counts.total === 1 ? 'link' : 'links' }}
+          <span v-if="counts.archived && filters.status !== 'archived'">
+            · {{ counts.archived }} archived
+          </span>
+        </p>
+      </div>
 
       <UButton icon="i-lucide-plus" class="min-h-10" @click="openCreate">
         New link
       </UButton>
     </div>
+
+    <LinkFilters v-model="filters" />
 
     <UAlert
       v-if="!categories.length"
@@ -163,7 +255,7 @@ function formatDate(value: string) {
       class="hidden sm:block"
     >
       <template #name-cell="{ row }">
-        <div class="flex flex-col">
+        <div class="flex flex-col" :class="row.original.status === 'archived' ? 'opacity-60' : undefined">
           <span class="font-medium">{{ row.original.name }}</span>
           <span v-if="row.original.description" class="line-clamp-1 text-xs text-muted">
             {{ row.original.description }}
@@ -179,8 +271,20 @@ function formatDate(value: string) {
         <PeriodBadge :label="row.original.periodLabel" :period-type="row.original.periodType" />
       </template>
 
-      <template #createdAt-cell="{ row }">
-        <span class="text-sm text-muted">{{ formatDate(row.original.createdAt) }}</span>
+      <template #status-cell="{ row }">
+        <UBadge
+          v-if="row.original.status === 'archived'"
+          color="neutral"
+          variant="subtle"
+          size="sm"
+          icon="i-lucide-archive"
+          :title="archivedNote(row.original)"
+        >
+          Archived
+        </UBadge>
+        <UBadge v-else color="success" variant="subtle" size="sm">
+          Active
+        </UBadge>
       </template>
 
       <template #actions-cell="{ row }">
@@ -199,8 +303,8 @@ function formatDate(value: string) {
       <template #empty>
         <EmptyState
           icon="i-lucide-link"
-          title="No links yet"
-          description="Add the first sheet for your team."
+          title="Nothing here"
+          description="No link matches these filters."
         />
       </template>
     </UTable>
@@ -209,10 +313,16 @@ function formatDate(value: string) {
       <div
         v-for="link in links"
         :key="link.id"
-        class="flex flex-col gap-2 rounded-lg border border-default p-4"
+        class="flex flex-col gap-2 rounded-md border border-default p-4"
+        :class="link.status === 'archived' ? 'bg-elevated/30' : undefined"
       >
         <div class="flex items-start gap-2">
-          <span class="min-w-0 flex-1 font-medium">{{ link.name }}</span>
+          <span
+            class="min-w-0 flex-1 font-medium"
+            :class="link.status === 'archived' ? 'opacity-60' : undefined"
+          >
+            {{ link.name }}
+          </span>
 
           <UDropdownMenu :items="rowMenu(link)">
             <UButton
@@ -229,18 +339,32 @@ function formatDate(value: string) {
         <div class="flex flex-wrap items-center gap-2">
           <CategoryBadge :category="link.category" />
           <PeriodBadge :label="link.periodLabel" :period-type="link.periodType" />
+          <UBadge
+            v-if="link.status === 'archived'"
+            color="neutral"
+            variant="subtle"
+            size="sm"
+            icon="i-lucide-archive"
+          >
+            Archived
+          </UBadge>
         </div>
 
         <p class="text-xs text-dimmed">
-          Added {{ formatDate(link.createdAt) }}
+          <template v-if="link.status === 'archived'">
+            {{ archivedNote(link) }}
+          </template>
+          <template v-else>
+            Added {{ formatDate(link.createdAt) }}
+          </template>
         </p>
       </div>
 
       <EmptyState
         v-if="!links.length && !pending"
         icon="i-lucide-link"
-        title="No links yet"
-        description="Add the first sheet for your team."
+        title="Nothing here"
+        description="No link matches these filters."
       />
     </div>
 

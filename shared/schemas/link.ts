@@ -17,6 +17,19 @@ export const linkFiltersSchema = z.object({
 
 export type LinkFilters = z.output<typeof linkFiltersSchema>
 
+export const linkStatusFilterSchema = z.enum(['all', 'active', 'archived'])
+
+/**
+ * The management table's filters. It defaults to everything: an admin looking for a link should
+ * not have to guess whether it was archived, and a link one admin hid from their own view must
+ * still be manageable by them.
+ */
+export const adminLinkFiltersSchema = linkFiltersSchema.extend({
+  status: z.preprocess(blankToUndefined, linkStatusFilterSchema.default('all'))
+})
+
+export type AdminLinkFilters = z.output<typeof adminLinkFiltersSchema>
+
 export const idParamSchema = z.coerce.number().int().positive()
 
 /** `new URL` accepts anything with a scheme, so the protocol is checked separately. */

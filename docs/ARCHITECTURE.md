@@ -160,6 +160,7 @@ All handlers call an auth guard first. Response shapes are typed in `shared/type
 | PUT `/api/quick-access/order` | user | Body `{ linkIds: number[] }` → rewrite `quickAccessOrder` (index * 10) in one transaction/batch |
 | GET `/api/categories` | user | List with `linkCount` |
 | POST / PATCH / DELETE `/api/categories[/id]` | admin | CRUD; DELETE → 409 if `linkCount > 0` |
+| GET `/api/admin/links` | admin | The management view: every link whatever its status, never filtered by the caller's own personal archive. Query adds `status=all\|active\|archived` |
 | GET / POST `/api/admin/users` | admin | List (never include `passwordHash`) / create |
 | PATCH `/api/admin/users/[id]` | admin | name, role, isActive (self & last-admin protections) |
 | POST `/api/admin/users/[id]/reset-password` | admin | Set new password |
@@ -188,7 +189,7 @@ All handlers call an auth guard first. Response shapes are typed in `shared/type
 | `/login` | auth | UCard + UForm (email, password) |
 | `/` | default | Quick access bar (top) + filters + link grid. One page at every width |
 | `/archive` | default | UTabs: Archived by me / Archived for everyone |
-| `/admin/links` | default | UTable with actions, "New link" → `LinkFormModal` |
+| `/admin/links` | default | UTable of every link with a status column and an All/Active/Archived filter, actions to archive and restore, "New link" → `LinkFormModal` |
 | `/admin/categories` | default | UTable + inline create/edit modal |
 | `/admin/users` | default | UTable + create/edit slideover |
 | `/admin/settings` | default | UForm: mode (URadioGroup), grace days (UInputNumber), include yearly (USwitch), Run now |

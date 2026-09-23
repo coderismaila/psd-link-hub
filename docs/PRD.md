@@ -84,7 +84,11 @@ a bulk "Archive overdue" action instead.
 
 **US-5 Archive page.** Tabs: "Archived by me" and "Archived for everyone". Same filters. Admin sees Restore on global items.
 
-**US-6 Manage links (admin).** Create/edit via modal form: name (required, ≤120), description (≤500), URL (required, https), category (required dropdown, with inline "create category" for admins), period type, month (monthly only) & year, each picked from visible options rather than a dropdown. `createdAt` is automatic and shown read-only.
+**US-6 Manage links (admin).** The table lists every link whatever its status, with a column
+saying which are archived and an All / Active / Archived filter. Archiving and restoring for
+everyone are available from the row. A link an admin has archived for themselves still appears
+here — management is never filtered by one person's preferences.
+ Create/edit via modal form: name (required, ≤120), description (≤500), URL (required, https), category (required dropdown, with inline "create category" for admins), period type, month (monthly only) & year, each picked from visible options rather than a dropdown. `createdAt` is automatic and shown read-only.
 - The URL is previewed as it is typed: what kind of Google document it is, the host, the document
   and tab id, and an Open button to confirm it is the right sheet. A link outside Google Workspace
   still saves, with a non-blocking warning; one that is not https is flagged as it will be rejected.

@@ -53,8 +53,17 @@ const monthItems = [
  */
 const FILTER_HEIGHT = 'h-9'
 
+/**
+ * Only the keys this component owns. The admin table passes its status filter through the same
+ * model, and that is its business to clear, not ours.
+ */
+const OWNED_KEYS = ['q', 'categoryId', 'periodType', 'year', 'month'] as const
+
 const hasFilters = computed(() =>
-  Object.values(filters.value).some(value => value !== undefined && value !== '')
+  OWNED_KEYS.some((key) => {
+    const value = filters.value[key]
+    return value !== undefined && value !== ''
+  })
 )
 
 function toggleCategory(id: number) {
@@ -66,7 +75,12 @@ function toggleCategory(id: number) {
 
 function clearFilters() {
   search.value = ''
-  filters.value = {}
+
+  // Rebuild from the keys this component does not own, so anything else passed through survives.
+  filters.value = Object.fromEntries(
+    Object.entries(filters.value)
+      .filter(([key]) => !OWNED_KEYS.includes(key as typeof OWNED_KEYS[number]))
+  )
 }
 </script>
 
