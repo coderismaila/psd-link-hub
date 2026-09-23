@@ -46,6 +46,13 @@ const monthItems = [
   }))
 ]
 
+/**
+ * Every control in this bar is pinned to one height. Inputs size themselves from padding and the
+ * radio segments from their variant, so left alone they land a few pixels apart and the row reads
+ * as uneven.
+ */
+const FILTER_HEIGHT = 'h-9'
+
 const hasFilters = computed(() =>
   Object.values(filters.value).some(value => value !== undefined && value !== '')
 )
@@ -70,8 +77,10 @@ function clearFilters() {
         <UInput
           v-model="search"
           icon="i-lucide-search"
+          size="sm"
           placeholder="Name or description"
           class="w-full"
+          :ui="{ base: FILTER_HEIGHT }"
         />
       </UFormField>
 
@@ -83,7 +92,7 @@ function clearFilters() {
           orientation="horizontal"
           indicator="hidden"
           size="sm"
-          :ui="{ fieldset: 'flex-row', item: 'justify-center text-center' }"
+          :ui="{ fieldset: 'flex-row', item: `${FILTER_HEIGHT} items-center justify-center px-3 py-0 text-center` }"
           @update:model-value="filters = { ...filters, periodType: $event as LinkFilters['periodType'] }"
         />
       </UFormField>
@@ -96,7 +105,7 @@ function clearFilters() {
           orientation="horizontal"
           indicator="hidden"
           size="sm"
-          :ui="{ fieldset: 'flex-row', item: 'justify-center text-center' }"
+          :ui="{ fieldset: 'flex-row', item: `${FILTER_HEIGHT} items-center justify-center px-3 py-0 text-center` }"
           @update:model-value="filters = { ...filters, year: $event as number | undefined }"
         />
       </UFormField>
@@ -108,6 +117,7 @@ function clearFilters() {
           :items="monthItems"
           size="sm"
           class="w-full"
+          :ui="{ base: FILTER_HEIGHT }"
           @update:model-value="filters = { ...filters, month: $event?.value }"
         />
       </UFormField>
@@ -118,7 +128,7 @@ function clearFilters() {
         variant="ghost"
         icon="i-lucide-x"
         size="sm"
-        class="min-h-10"
+        :class="FILTER_HEIGHT"
         @click="clearFilters"
       >
         Clear
