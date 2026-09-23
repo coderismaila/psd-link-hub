@@ -65,11 +65,9 @@ function tileMenu(link: LinkWithPrefs, index: number): DropdownMenuItem[][] {
       <h2 id="quick-access-heading" class="text-sm font-semibold tracking-wide text-muted uppercase">
         Quick access
       </h2>
-      <Transition name="tile">
-        <UBadge v-if="quickAccess.length" color="neutral" variant="subtle" size="sm">
-          {{ quickAccess.length }}
-        </UBadge>
-      </Transition>
+      <UBadge v-if="quickAccess.length" color="neutral" variant="subtle" size="sm">
+        {{ quickAccess.length }}
+      </UBadge>
     </div>
 
     <div v-if="pending" class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

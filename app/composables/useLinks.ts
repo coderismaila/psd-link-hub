@@ -23,9 +23,16 @@ export function useLinks(filters: Ref<Partial<LinkFilters>>, options: { key?: st
     deep: true
   })
 
+  // Skeletons belong to the first load; a refetch keeps the current rows on screen.
+  const hasLoaded = ref(false)
+
+  watch(status, (value) => {
+    if (value === 'success' || value === 'error') hasLoaded.value = true
+  }, { immediate: true })
+
   return {
     links: data,
-    pending: computed(() => status.value === 'pending'),
+    pending: computed(() => status.value === 'pending' && !hasLoaded.value),
     error,
     refresh
   }

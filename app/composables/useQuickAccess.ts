@@ -21,6 +21,17 @@ export function useQuickAccess() {
 
   const quickAccess = data as Ref<LinkWithPrefs[]>
 
+  /*
+   * `status` returns to 'pending' on every refetch, so keying the skeletons off it alone made the
+   * whole bar blink out and back each time something was pinned. Skeletons are for the first load
+   * only; afterwards the list stays on screen while it revalidates.
+   */
+  const hasLoaded = ref(false)
+
+  watch(status, (value) => {
+    if (value === 'success' || value === 'error') hasLoaded.value = true
+  }, { immediate: true })
+
   // The browse list holds its own copy of each link, so its stars have to follow along.
   const { data: browseList } = useNuxtData<LinkWithPrefs[]>('links')
 
@@ -63,8 +74,10 @@ export function useQuickAccess() {
     markInBrowseList(link.id, pinned)
 
     try {
+      // No refetch on success: the list already shows the right thing, and refetching would
+      // throw the bar back into its loading state for no gain. Order is implied by position,
+      // and the server owns the persisted value.
       await $fetch(`/api/links/${link.id}/quick-access`, { method: 'PUT', body: { pinned } })
-      await refresh()
     } catch (error) {
       markInBrowseList(link.id, !pinned)
       await recover(pinned ? 'Could not add to quick access' : 'Could not remove from quick access', error)
@@ -106,7 +119,7 @@ export function useQuickAccess() {
 
   return {
     quickAccess,
-    pending: computed(() => status.value === 'pending'),
+    pending: computed(() => status.value === 'pending' && !hasLoaded.value),
     refresh,
     toggleQuickAccess,
     handleReorder,
