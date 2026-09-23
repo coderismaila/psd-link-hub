@@ -152,6 +152,7 @@ async function onSubmit(event: FormSubmitEvent<LinkBody>) {
             :items="categoryItems"
             variant="card"
             indicator="hidden"
+            orientation="horizontal"
             :ui="{ fieldset: 'grid grid-cols-2 gap-2 sm:grid-cols-3' }"
           >
             <template #label="{ item }">
@@ -187,9 +188,10 @@ async function onSubmit(event: FormSubmitEvent<LinkBody>) {
             <URadioGroup
               :model-value="state.periodMonth ?? undefined"
               :items="monthItems"
-              variant="table"
+              variant="card"
               indicator="hidden"
-              :ui="{ fieldset: 'grid grid-cols-4 gap-1.5', item: 'justify-center text-center' }"
+              orientation="horizontal"
+              :ui="{ fieldset: 'grid grid-cols-4 gap-1.5', item: 'justify-center px-2 py-1.5 text-center' }"
               @update:model-value="state.periodMonth = $event as number"
             />
           </UFormField>
@@ -199,8 +201,9 @@ async function onSubmit(event: FormSubmitEvent<LinkBody>) {
               v-model="state.periodYear"
               :items="yearItems"
               variant="table"
+              orientation="horizontal"
               indicator="hidden"
-              :ui="{ fieldset: 'flex flex-wrap gap-1.5', item: 'justify-center text-center' }"
+              :ui="{ fieldset: 'flex-row', item: 'justify-center text-center' }"
             />
           </UFormField>
         </div>

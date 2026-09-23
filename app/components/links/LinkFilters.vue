@@ -80,9 +80,10 @@ function clearFilters() {
           :model-value="filters.periodType"
           :items="periodTypeItems"
           variant="table"
+          orientation="horizontal"
           indicator="hidden"
           size="sm"
-          :ui="{ fieldset: 'flex gap-1', item: 'justify-center text-center' }"
+          :ui="{ fieldset: 'flex-row', item: 'justify-center text-center' }"
           @update:model-value="filters = { ...filters, periodType: $event as LinkFilters['periodType'] }"
         />
       </UFormField>
@@ -92,9 +93,10 @@ function clearFilters() {
           :model-value="filters.year"
           :items="yearItems"
           variant="table"
+          orientation="horizontal"
           indicator="hidden"
           size="sm"
-          :ui="{ fieldset: 'flex gap-1', item: 'justify-center text-center' }"
+          :ui="{ fieldset: 'flex-row', item: 'justify-center text-center' }"
           @update:model-value="filters = { ...filters, year: $event as number | undefined }"
         />
       </UFormField>
