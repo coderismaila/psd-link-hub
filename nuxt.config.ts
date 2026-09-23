@@ -7,7 +7,8 @@ export default defineNuxtConfig({
   app: {
     head: {
       link: [{ rel: 'icon', type: 'image/png', href: '/ke-logo.png' }]
-    }
+    },
+    pageTransition: { name: 'page', mode: 'out-in' }
   },
   // Components are named after the file alone, so `components/links/LinkCard.vue` is `<LinkCard>`
   // rather than `<LinksLinkCard>`.

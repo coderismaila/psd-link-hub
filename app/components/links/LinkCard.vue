@@ -73,14 +73,14 @@ const menuItems = computed<DropdownMenuItem[][]>(() => {
     <!-- A hairline of the category colour, so the grid is scannable by colour alone. -->
     <span
       aria-hidden="true"
-      class="ke-cat-fill absolute inset-x-0 top-0 h-0.5"
+      class="ke-cat-fill absolute inset-x-0 top-0 h-0.5 transition-[height] duration-200 group-hover:h-1"
       :style="{ '--cat': accentHex }"
     />
 
     <div class="flex items-start gap-2">
 
       <h3
-        class="min-w-0 flex-1 truncate font-semibold tracking-tight group-hover:text-primary"
+        class="min-w-0 flex-1 truncate font-semibold tracking-tight transition-colors group-hover:text-primary"
         :title="link.name"
       >
         {{ link.name }}
@@ -91,7 +91,7 @@ const menuItems = computed<DropdownMenuItem[][]>(() => {
         :color="link.isQuickAccess ? 'primary' : 'neutral'"
         variant="ghost"
         size="sm"
-        class="min-h-10 min-w-10"
+        class="min-h-10 min-w-10 transition-transform duration-150 active:scale-90"
         :aria-label="link.isQuickAccess ? `Remove ${link.name} from quick access` : `Add ${link.name} to quick access`"
         :aria-pressed="link.isQuickAccess"
         @click="emit('toggle-quick-access', link)"

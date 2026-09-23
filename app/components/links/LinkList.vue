@@ -32,7 +32,12 @@ const emit = defineEmits<{
     </div>
   </div>
 
-  <div v-else-if="links.length" class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+  <TransitionGroup
+    v-else-if="links.length"
+    tag="div"
+    name="card"
+    class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
+  >
     <LinkCard
       v-for="link in links"
       :key="link.id"
@@ -43,7 +48,7 @@ const emit = defineEmits<{
       @archive-global="emit('archive-global', $event)"
       @delete="emit('delete', $event)"
     />
-  </div>
+  </TransitionGroup>
 
   <slot v-else name="empty" />
 </template>

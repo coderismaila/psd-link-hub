@@ -85,10 +85,103 @@ body {
   transform: translateY(-2px);
 }
 
+/*
+ * Motion is used to explain a change, never to decorate: a tile slides to where it now belongs,
+ * a card fades in when a filter admits it, a page moves in the direction you navigated.
+ */
+
+/* Quick-access tiles: pin, unpin and reorder. */
+.tile-enter-active {
+  transition: opacity 220ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.tile-leave-active {
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.tile-enter-from {
+  opacity: 0;
+  transform: translateY(-6px) scale(0.94);
+}
+
+.tile-leave-to {
+  opacity: 0;
+  transform: scale(0.94);
+}
+
+/* The FLIP pass: every other tile glides to its new slot. */
+.tile-move {
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Link cards entering and leaving as filters change. */
+.card-enter-active {
+  transition: opacity 200ms ease, transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.card-leave-active {
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.card-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.card-leave-to {
+  opacity: 0;
+  transform: scale(0.97);
+}
+
+.card-move {
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Route changes. */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+/*
+ * One switch for everything above. Anyone who asks their system for less motion gets state
+ * changes with no movement at all, rather than faster movement.
+ */
 @media (prefers-reduced-motion: reduce) {
   .ke-card,
   .ke-card:hover {
     transition: none;
+    transform: none;
+  }
+
+  .tile-enter-active,
+  .tile-leave-active,
+  .tile-move,
+  .card-enter-active,
+  .card-leave-active,
+  .card-move,
+  .page-enter-active,
+  .page-leave-active {
+    transition: none !important;
+  }
+
+  .tile-enter-from,
+  .tile-leave-to,
+  .card-enter-from,
+  .card-leave-to,
+  .page-enter-from,
+  .page-leave-to {
+    opacity: 1;
     transform: none;
   }
 }

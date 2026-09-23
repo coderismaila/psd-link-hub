@@ -70,11 +70,17 @@ function archivedOn(link: LinkWithPrefs) {
       <USkeleton v-for="placeholder in 3" :key="placeholder" class="h-36 w-full" />
     </div>
 
-    <div v-else-if="links.length" class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+    <!-- Restoring a link removes it from this list; the card leaving says so. -->
+    <TransitionGroup
+      v-else-if="links.length"
+      tag="div"
+      name="card"
+      class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
+    >
       <div
         v-for="link in links"
         :key="link.id"
-        class="flex h-full flex-col gap-3 rounded-lg border border-default bg-default p-4"
+        class="ke-card flex h-full flex-col gap-3 rounded-md border border-default bg-default p-4"
       >
         <h3 class="font-medium">
           {{ link.name }}
@@ -132,7 +138,7 @@ function archivedOn(link: LinkWithPrefs) {
           </UButton>
         </div>
       </div>
-    </div>
+    </TransitionGroup>
 
     <EmptyState
       v-else
