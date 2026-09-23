@@ -33,8 +33,8 @@ There is **no self sign-up**. The first admin is created by a seed task.
 **Link** — `name`, `description`, `url`, `category`, `periodType` (`monthly` | `yearly`),
 period (`year` + `month` for monthly, `year` for yearly), `createdAt` (automatic), `createdBy`.
 
-**Category** — admin-managed list (name, colour picked from a swatch palette). Shown as a dropdown (`USelectMenu`) on the link
-form and as a filter. A category in use cannot be deleted until its links are reassigned.
+**Category** — admin-managed list (name, colour picked from a swatch palette). Chosen as a card on
+the link form and shown as a colour chip in the filters. A category in use cannot be deleted until its links are reassigned.
 
 **Global archive** — the link is archived for everyone (`links.status = 'archived'`). Done by
 an admin, or by the system's auto-archive for monthly links.
@@ -84,7 +84,7 @@ a bulk "Archive overdue" action instead.
 
 **US-5 Archive page.** Tabs: "Archived by me" and "Archived for everyone". Same filters. Admin sees Restore on global items.
 
-**US-6 Manage links (admin).** Create/edit via modal form: name (required, ≤120), description (≤500), URL (required, https), category (required dropdown, with inline "create category" for admins), period type, month (monthly only) & year. `createdAt` is automatic and shown read-only.
+**US-6 Manage links (admin).** Create/edit via modal form: name (required, ≤120), description (≤500), URL (required, https), category (required dropdown, with inline "create category" for admins), period type, month (monthly only) & year, each picked from visible options rather than a dropdown. `createdAt` is automatic and shown read-only.
 - If the URL is not a `docs.google.com/spreadsheets` URL, show a non-blocking warning.
 - "Duplicate for next period" action pre-fills the form with the next month/year.
 

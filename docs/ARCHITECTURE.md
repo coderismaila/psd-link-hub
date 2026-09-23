@@ -202,7 +202,7 @@ admin section only when `user.role === 'admin'`, user menu with colour-mode togg
 - `LinkCard.vue` — card for the grid; props `link: LinkWithPrefs`; emits `toggle-quick-access`, `archive-mine`, `edit`, `archive-global`, `delete`. No drag handle: cards are never dragged.
 - `LinkList.vue` — responsive grid of `LinkCard`s. A plain list, not a drag source.
 - `QuickAccessBar.vue` — compact tiles above the list; reorder-only `VueDraggable`. Empty state "Nothing pinned yet".
-- `LinkFilters.vue` — UInput search (debounced 250 ms), USelectMenu category, period type, month/year; synced to route query.
+- `LinkFilters.vue` — UInput search (debounced 250 ms), category colour chips, URadioGroup segments for period type and year, USelectMenu for month; synced to route query.
 - `LinkFormModal.vue` — UModal + UForm with zod schema from `shared/schemas/link.ts`.
 - `CategoryBadge.vue`, `PeriodBadge.vue`, `EmptyState.vue`, `ConfirmModal.vue`.
 

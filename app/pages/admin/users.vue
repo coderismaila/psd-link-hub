@@ -35,8 +35,8 @@ const resetState = reactive({ password: '' })
 const resetting = ref(false)
 
 const roleItems = [
-  { label: 'Viewer', value: 'viewer' },
-  { label: 'Admin', value: 'admin' }
+  { label: 'Viewer', value: 'viewer', description: 'Browse, pin and keep a personal archive' },
+  { label: 'Admin', value: 'admin', description: 'Also manage links, categories, users and settings' }
 ]
 
 function reportError(title: string, error: unknown) {
@@ -268,12 +268,7 @@ function isSelf(user: UserDTO) {
           </UFormField>
 
           <UFormField label="Role" name="role" required>
-            <USelectMenu
-              :model-value="roleItems.find(item => item.value === editState.role)"
-              :items="roleItems"
-              class="w-full"
-              @update:model-value="editState.role = $event?.value as UpdateUserBody['role']"
-            />
+            <URadioGroup v-model="editState.role" :items="roleItems" variant="card" />
           </UFormField>
 
           <UFormField label="Status" name="isActive">
@@ -311,12 +306,7 @@ function isSelf(user: UserDTO) {
           </UFormField>
 
           <UFormField label="Role" name="role" required>
-            <USelectMenu
-              :model-value="roleItems.find(item => item.value === createState.role)"
-              :items="roleItems"
-              class="w-full"
-              @update:model-value="createState.role = $event?.value as CreateUserBody['role']"
-            />
+            <URadioGroup v-model="createState.role" :items="roleItems" variant="card" />
           </UFormField>
 
           <UFormField

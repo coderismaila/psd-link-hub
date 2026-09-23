@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { isGoogleSheetsUrl, linkBodySchema, type LinkBody, type LinkBodyInput } from '#shared/schemas/link'
+import { categoryHex } from '#shared/schemas/category'
+import { availableYears } from '#shared/utils/period'
 
 const open = defineModel<boolean>('open', { required: true })
 
@@ -16,6 +18,7 @@ const emit = defineEmits<{ saved: [] }>()
 
 const toast = useToast()
 const { categories } = useCategories()
+const { appTimezone } = useRuntimeConfig().public
 
 const state = reactive<LinkBodyInput>({ ...props.initial })
 const loading = ref(false)
@@ -29,25 +32,32 @@ watch(open, (isOpen) => {
 })
 
 const categoryItems = computed(() =>
-  categories.value.map(category => ({ label: category.name, value: category.id }))
+  categories.value.map(category => ({
+    label: category.name,
+    value: category.id,
+    color: categoryHex(category.color)
+  }))
 )
 
 const periodTypeItems = [
-  { label: 'Monthly', value: 'monthly' },
-  { label: 'Yearly', value: 'yearly' }
+  { label: 'Monthly', value: 'monthly', description: 'One sheet per month' },
+  { label: 'Yearly', value: 'yearly', description: 'One sheet for the whole year' }
 ]
 
+// Short names keep the twelve buttons on three tidy rows.
 const monthItems = Array.from({ length: 12 }, (_, index) => ({
-  label: new Intl.DateTimeFormat('en-GB', { month: 'long' }).format(new Date(2000, index, 1)),
+  label: new Intl.DateTimeFormat('en-GB', { month: 'short' }).format(new Date(2000, index, 1)),
   value: index + 1
 }))
 
-const currentYear = new Date().getFullYear()
-
-const yearItems = Array.from({ length: 7 }, (_, index) => {
-  const year = currentYear + 2 - index
-  return { label: String(year), value: year }
-})
+/**
+ * Only the years this app can have links for, plus the one being edited if it somehow sits
+ * outside that range.
+ */
+const yearItems = computed(() =>
+  availableYears(new Date(), appTimezone, state.periodYear)
+    .map(year => ({ label: String(year), value: year }))
+)
 
 /** Non-blocking: most links here are Google Sheets, but anything reachable is allowed. */
 const showSheetsWarning = computed(() =>
@@ -137,22 +147,33 @@ async function onSubmit(event: FormSubmitEvent<LinkBody>) {
         />
 
         <UFormField label="Category" name="categoryId" required>
-          <USelectMenu
-            :model-value="categoryItems.find(item => item.value === state.categoryId)"
+          <URadioGroup
+            v-model="state.categoryId"
             :items="categoryItems"
-            placeholder="Choose a category"
-            class="w-full"
-            @update:model-value="state.categoryId = $event?.value"
-          />
+            variant="card"
+            indicator="hidden"
+            :ui="{ fieldset: 'grid grid-cols-2 gap-2 sm:grid-cols-3' }"
+          >
+            <template #label="{ item }">
+              <span class="flex min-w-0 items-center gap-1.5">
+                <span
+                  class="ke-cat-fill size-2 shrink-0 rounded-full"
+                  :style="{ '--cat': item.color }"
+                />
+                <span class="truncate">{{ item.label }}</span>
+              </span>
+            </template>
+          </URadioGroup>
         </UFormField>
 
         <div class="grid gap-4 sm:grid-cols-3">
-          <UFormField label="Period type" name="periodType" required>
-            <USelectMenu
-              :model-value="periodTypeItems.find(item => item.value === state.periodType)"
+          <UFormField label="Period type" name="periodType" required class="sm:col-span-3">
+            <URadioGroup
+              v-model="state.periodType"
               :items="periodTypeItems"
-              class="w-full"
-              @update:model-value="state.periodType = $event?.value as LinkBodyInput['periodType']"
+              variant="card"
+              orientation="horizontal"
+              :ui="{ fieldset: 'grid grid-cols-2 gap-2' }"
             />
           </UFormField>
 
@@ -161,22 +182,25 @@ async function onSubmit(event: FormSubmitEvent<LinkBody>) {
             label="Month"
             name="periodMonth"
             required
+            class="sm:col-span-2"
           >
-            <USelectMenu
-              :model-value="monthItems.find(item => item.value === state.periodMonth)"
+            <URadioGroup
+              :model-value="state.periodMonth ?? undefined"
               :items="monthItems"
-              placeholder="Choose a month"
-              class="w-full"
-              @update:model-value="state.periodMonth = $event?.value"
+              variant="table"
+              indicator="hidden"
+              :ui="{ fieldset: 'grid grid-cols-4 gap-1.5', item: 'justify-center text-center' }"
+              @update:model-value="state.periodMonth = $event as number"
             />
           </UFormField>
 
           <UFormField label="Year" name="periodYear" required>
-            <USelectMenu
-              :model-value="yearItems.find(item => item.value === state.periodYear)"
+            <URadioGroup
+              v-model="state.periodYear"
               :items="yearItems"
-              class="w-full"
-              @update:model-value="state.periodYear = $event?.value"
+              variant="table"
+              indicator="hidden"
+              :ui="{ fieldset: 'flex flex-wrap gap-1.5', item: 'justify-center text-center' }"
             />
           </UFormField>
         </div>

@@ -73,6 +73,38 @@ export function formatCalendarDate(date: CalendarDate): string {
 }
 
 /**
+ * The first year this app holds links for. Nothing predates it, so there is no reason to offer
+ * earlier years in a form or a filter.
+ */
+export const FIRST_YEAR = 2026
+
+/**
+ * The years worth offering: from launch up to the current one, and next year as well once
+ * December arrives, so January's sheets can be added before the year turns.
+ *
+ * A link that somehow sits outside this range still needs to be editable, so callers pass its own
+ * year through `include`.
+ */
+export function availableYears(
+  now: Date = new Date(),
+  timeZone = 'UTC',
+  include?: number | null
+): number[] {
+  const today = calendarDateIn(timeZone, now)
+  const latest = today.month === 12 ? today.year + 1 : today.year
+
+  const years = new Set<number>()
+
+  for (let year = FIRST_YEAR; year <= Math.max(FIRST_YEAR, latest); year++) {
+    years.add(year)
+  }
+
+  if (include) years.add(include)
+
+  return [...years].sort((a, b) => a - b)
+}
+
+/**
  * Whether a link has reached its archive date. Compares calendar dates in the app's timezone
  * rather than UTC instants, so a link becomes due at local midnight wherever the server runs.
  */

@@ -1,6 +1,7 @@
 import { test, describe } from 'node:test'
 import assert from 'node:assert/strict'
 import {
+  availableYears,
   archiveDueDate,
   calendarDateIn,
   calendarDateKey,
@@ -112,6 +113,38 @@ describe('isArchiveDue', () => {
 
     assert.equal(isArchiveDue(link, 3, new Date('2026-12-31T12:00:00Z'), 'UTC'), false)
     assert.equal(isArchiveDue(link, 3, new Date('2027-01-04T12:00:00Z'), 'UTC'), true)
+  })
+})
+
+describe('availableYears', () => {
+  test('offers only the current year for most of the year', () => {
+    assert.deepEqual(availableYears(new Date('2026-09-22T12:00:00Z'), 'UTC'), [2026])
+    assert.deepEqual(availableYears(new Date('2026-01-01T12:00:00Z'), 'UTC'), [2026])
+    assert.deepEqual(availableYears(new Date('2026-11-30T12:00:00Z'), 'UTC'), [2026])
+  })
+
+  test('adds next year once December arrives', () => {
+    assert.deepEqual(availableYears(new Date('2026-12-01T00:00:00Z'), 'UTC'), [2026, 2027])
+    assert.deepEqual(availableYears(new Date('2026-12-31T23:00:00Z'), 'UTC'), [2026, 2027])
+  })
+
+  test('keeps every year from launch once time has passed', () => {
+    assert.deepEqual(availableYears(new Date('2027-06-01T12:00:00Z'), 'UTC'), [2026, 2027])
+    assert.deepEqual(availableYears(new Date('2027-12-01T12:00:00Z'), 'UTC'), [2026, 2027, 2028])
+  })
+
+  test('decides on the calendar date in the given timezone', () => {
+    // 23:00 UTC on 30 Nov is already 1 Dec in Kiritimati, so next year opens there first.
+    const instant = new Date('2026-11-30T23:00:00Z')
+
+    assert.deepEqual(availableYears(instant, 'UTC'), [2026])
+    assert.deepEqual(availableYears(instant, 'Pacific/Kiritimati'), [2026, 2027])
+  })
+
+  test('includes a link own year when it falls outside the range', () => {
+    const years = availableYears(new Date('2026-09-22T12:00:00Z'), 'UTC', 2024)
+
+    assert.deepEqual(years, [2024, 2026])
   })
 })
 
