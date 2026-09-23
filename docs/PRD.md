@@ -85,7 +85,9 @@ a bulk "Archive overdue" action instead.
 **US-5 Archive page.** Tabs: "Archived by me" and "Archived for everyone". Same filters. Admin sees Restore on global items.
 
 **US-6 Manage links (admin).** Create/edit via modal form: name (required, ≤120), description (≤500), URL (required, https), category (required dropdown, with inline "create category" for admins), period type, month (monthly only) & year, each picked from visible options rather than a dropdown. `createdAt` is automatic and shown read-only.
-- If the URL is not a `docs.google.com/spreadsheets` URL, show a non-blocking warning.
+- The URL is previewed as it is typed: what kind of Google document it is, the host, the document
+  and tab id, and an Open button to confirm it is the right sheet. A link outside Google Workspace
+  still saves, with a non-blocking warning; one that is not https is flagged as it will be rejected.
 - "Duplicate for next period" action pre-fills the form with the next month/year.
 
 **US-7 Manage categories (admin).** List, create, rename, change colour, delete (blocked with a clear message if in use, showing link count).

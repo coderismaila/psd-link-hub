@@ -204,6 +204,7 @@ admin section only when `user.role === 'admin'`, user menu with colour-mode togg
 - `QuickAccessBar.vue` — compact tiles above the list; reorder-only `VueDraggable`. Empty state "Nothing pinned yet".
 - `LinkFilters.vue` — UInput search (debounced 250 ms), category colour chips, URadioGroup segments for period type and year, USelectMenu for month; synced to route query.
 - `LinkFormModal.vue` — UModal + UForm with zod schema from `shared/schemas/link.ts`.
+- `LinkUrlPreview.vue` — describes the pasted URL from its own text (kind, host, document and tab id) and offers an Open button. No fetch: these sheets are private, so a request from the server returns Google's sign-in page, and the real title would need the Drive API that the PRD puts out of scope.
 - `CategoryBadge.vue`, `PeriodBadge.vue`, `EmptyState.vue`, `ConfirmModal.vue`.
 
 ## 8. Quick access and reordering (`vue-draggable-plus`)

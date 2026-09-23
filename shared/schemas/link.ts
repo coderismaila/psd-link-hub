@@ -55,16 +55,6 @@ export const linkBodySchema = z.object({
 export type LinkBody = z.output<typeof linkBodySchema>
 export type LinkBodyInput = z.input<typeof linkBodySchema>
 
-/** Google Sheets links are the norm here, so anything else is worth a nudge — but not a block. */
-export function isGoogleSheetsUrl(value: string): boolean {
-  try {
-    const url = new URL(value)
-    return url.hostname === 'docs.google.com' && url.pathname.startsWith('/spreadsheets')
-  } catch {
-    return false
-  }
-}
-
 /** The period that follows the given one, used by "Duplicate for next period". */
 export function nextPeriod(period: { periodType: 'monthly' | 'yearly', periodYear: number, periodMonth: number | null }) {
   if (period.periodType === 'yearly' || !period.periodMonth) {

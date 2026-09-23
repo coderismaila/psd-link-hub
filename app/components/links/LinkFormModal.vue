@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FormSubmitEvent } from '@nuxt/ui'
-import { isGoogleSheetsUrl, linkBodySchema, type LinkBody, type LinkBodyInput } from '#shared/schemas/link'
+import { linkBodySchema, type LinkBody, type LinkBodyInput } from '#shared/schemas/link'
 import { categoryHex } from '#shared/schemas/category'
 import { availableYears } from '#shared/utils/period'
 
@@ -57,11 +57,6 @@ const monthItems = Array.from({ length: 12 }, (_, index) => ({
 const yearItems = computed(() =>
   availableYears(new Date(), appTimezone, state.periodYear)
     .map(year => ({ label: String(year), value: year }))
-)
-
-/** Non-blocking: most links here are Google Sheets, but anything reachable is allowed. */
-const showSheetsWarning = computed(() =>
-  Boolean(state.url?.trim()) && !isGoogleSheetsUrl(state.url.trim())
 )
 
 const createdOn = computed(() => props.createdAt
@@ -137,14 +132,7 @@ async function onSubmit(event: FormSubmitEvent<LinkBody>) {
           />
         </UFormField>
 
-        <UAlert
-          v-if="showSheetsWarning"
-          color="warning"
-          variant="subtle"
-          icon="i-lucide-triangle-alert"
-          title="Not a Google Sheets link"
-          description="You can still save it — check the address is the one you meant."
-        />
+        <LinkUrlPreview :url="state.url ?? ''" />
 
         <UFormField label="Category" name="categoryId" required>
           <URadioGroup
