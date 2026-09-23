@@ -23,16 +23,11 @@ export function useLinks(filters: Ref<Partial<LinkFilters>>, options: { key?: st
     deep: true
   })
 
-  // Skeletons belong to the first load; a refetch keeps the current rows on screen.
-  const hasLoaded = ref(false)
-
-  watch(status, (value) => {
-    if (value === 'success' || value === 'error') hasLoaded.value = true
-  }, { immediate: true })
-
+  // Skeletons mean "nothing to show yet". Keeping the current rows on screen while a refetch
+  // runs survives both refreshes and remounts, so navigating back to a list is instant.
   return {
     links: data,
-    pending: computed(() => status.value === 'pending' && !hasLoaded.value),
+    pending: computed(() => status.value === 'pending' && !data.value.length),
     error,
     refresh
   }

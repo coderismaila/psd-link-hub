@@ -22,15 +22,11 @@ export function useQuickAccess() {
   const quickAccess = data as Ref<LinkWithPrefs[]>
 
   /*
-   * `status` returns to 'pending' on every refetch, so keying the skeletons off it alone made the
-   * whole bar blink out and back each time something was pinned. Skeletons are for the first load
-   * only; afterwards the list stays on screen while it revalidates.
+   * Skeletons mean "there is nothing to show yet", not "a request is in flight". `status` returns
+   * to 'pending' on every refetch, so keying off it blinked the bar out whenever something was
+   * pinned — and a per-instance flag would blink it again on every remount. Keying off the data
+   * keeps whatever is already on screen while the list revalidates behind it.
    */
-  const hasLoaded = ref(false)
-
-  watch(status, (value) => {
-    if (value === 'success' || value === 'error') hasLoaded.value = true
-  }, { immediate: true })
 
   // The browse list holds its own copy of each link, so its stars have to follow along.
   const { data: browseList } = useNuxtData<LinkWithPrefs[]>('links')
@@ -119,7 +115,7 @@ export function useQuickAccess() {
 
   return {
     quickAccess,
-    pending: computed(() => status.value === 'pending' && !hasLoaded.value),
+    pending: computed(() => status.value === 'pending' && !quickAccess.value.length),
     refresh,
     toggleQuickAccess,
     handleReorder,

@@ -9,7 +9,7 @@ export function useCategories() {
 
   return {
     categories: data,
-    pending: computed(() => status.value === 'pending'),
+    pending: computed(() => status.value === 'pending' && !data.value.length),
     refresh
   }
 }

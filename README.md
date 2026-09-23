@@ -2,11 +2,11 @@
 
 One place for the Google Sheets that dispatch operations run on. New sheets appear every month,
 some live for a year, and everyone has their own handful they open daily. This app keeps the
-current ones findable, archives old months on its own, and lets each person keep their own
-favorites.
+current ones findable, archives old months on its own, and lets each person pin the few they use
+daily to a quick-access bar.
 
-- **Roles:** admins manage links, categories, users and archive settings; viewers browse, favorite
-  and keep a personal archive.
+- **Roles:** admins manage links, categories, users and archive settings; viewers browse, pin and
+  keep a personal archive.
 - **No self sign-up.** The first admin comes from a seed task; every other account is created by
   an admin.
 
@@ -119,9 +119,43 @@ between invocations.
 - Set every variable from the table above in the host's environment. `NUXT_SESSION_PASSWORD` must
   be a fresh secret, not the one from your machine; changing it signs everybody out.
 - Serve over HTTPS. The session cookie is the only thing standing between a user and their account.
+- Sign-in is rate limited in memory: ten failed attempts per account and sixty per address in a
+  fifteen-minute window. That state lives in the process, so behind more than one instance each
+  would count separately and the limit would effectively multiply.
 - Migrations are applied at build and on boot, so a deploy picks up schema changes on its own.
 - Seed the first admin once, then create the rest from `/admin/users`.
 - Back up `.data/db/sqlite.db`. It holds every link, user and preference.
+
+### The native SQLite binding
+
+`pnpm build` succeeds, but the bundle in `.output/` does **not** include libsql's
+platform-specific native binding — Nitro's dependency tracing misses it, and the server exits at
+startup with `Cannot find module '@libsql/<platform>'`.
+
+Either install production dependencies on the host rather than shipping `.output/` alone, or copy
+the matching package in after building:
+
+```bash
+cp -r node_modules/.pnpm/@libsql+<platform>@*/node_modules/@libsql/<platform> .output/server/node_modules/@libsql/
+```
+
+The platform is the host's, not your laptop's: `linux-x64-gnu` on most servers,
+`win32-x64-msvc` on Windows, `darwin-arm64` on Apple silicon. Build on the platform you deploy to,
+or let the host install its own.
+
+### Caching
+
+Responses are deliberately split in two:
+
+- **`/api/**` is `no-store, private`.** Every API response is scoped to the signed-in user — the
+  link list carries that user's own pins and hidden links. For the same reason none of these
+  handlers use `defineCachedEventHandler`: a shared server-side cache would serve one person's
+  view to another.
+- **Static assets are `immutable` for a year.** Built files and the brand mark are
+  content-addressed or versioned by filename, so they can be cached hard.
+
+On the client, lists keep showing what they already have while they revalidate, so moving between
+pages does not blank the screen back to skeletons.
 
 ## Directory layout
 
