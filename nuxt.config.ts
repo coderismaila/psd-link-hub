@@ -1,6 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: '2025-07-15',
+  // Opts into the framework defaults as of this date; bump it deliberately, not casually.
+  compatibilityDate: '2026-09-23',
   devtools: { enabled: true },
   modules: ['@nuxt/ui', '@nuxthub/core', 'nuxt-auth-utils', '@vueuse/nuxt', '@nuxt/eslint'],
   css: ['~/assets/css/main.css'],
