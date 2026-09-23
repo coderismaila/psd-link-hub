@@ -112,9 +112,9 @@ overdue list makes the state obvious.
 
 ## Deploying
 
-The app needs a Node server and a persistent SQLite file, so it wants a host with a writable disk —
-a VPS, Fly.io, Railway or similar — rather than a purely serverless target where `.data/` vanishes
-between invocations.
+Two shapes work. On a host with a writable disk — a VPS, Fly.io, Railway — the local SQLite file
+comes along as it is. On a serverless host such as Vercel it cannot, and the database moves to
+Turso; see [Deploying to Vercel](#deploying-to-vercel) below.
 
 - Set every variable from the table above in the host's environment. `NUXT_SESSION_PASSWORD` must
   be a fresh secret, not the one from your machine; changing it signs everybody out.
@@ -126,11 +126,87 @@ between invocations.
 - Seed the first admin once, then create the rest from `/admin/users`.
 - Back up `.data/db/sqlite.db`. It holds every link, user and preference.
 
+### Deploying to Vercel
+
+Vercel gives each request a fresh, read-only filesystem, so the local SQLite file cannot come
+with you — anything written would vanish and no two invocations would agree. The database has to
+move somewhere hosted. **Turso** is the natural choice: it *is* libSQL, so the dialect, the
+schema, the migrations and the driver already in this project all stay exactly as they are. The
+free plan is far beyond what this app needs.
+
+**1. Create the database**
+
+```bash
+# https://docs.turso.tech/quickstart
+turso db create psd-link-hub
+turso db show psd-link-hub --url        # libsql://...
+turso db tokens create psd-link-hub     # the auth token
+```
+
+**2. Apply the schema and create the first admin, from your machine**
+
+Migrations are applied during the build, but do it yourself first so a failed deploy never leaves
+you with an empty database and no clear reason why:
+
+```bash
+TURSO_DATABASE_URL=libsql://... TURSO_AUTH_TOKEN=... npx nuxt db migrate
+```
+
+Seeding uses a Nitro task, and the task runner is a development-only route. So point a local dev
+server at the hosted database and seed through that, once:
+
+```bash
+TURSO_DATABASE_URL=libsql://... TURSO_AUTH_TOKEN=... pnpm dev
+curl -X POST http://localhost:3000/_nitro/tasks/db:seed
+```
+
+Set `NUXT_ADMIN_EMAIL` and `NUXT_ADMIN_PASSWORD` to what you actually want before running this.
+
+**3. Import the repository on Vercel and set the environment**
+
+No adapter or preset is needed; Nitro detects Vercel on its own. In **Settings → Environment
+Variables**, for every environment:
+
+| Variable | Value |
+|---|---|
+| `TURSO_DATABASE_URL` | `libsql://…` from step 1 |
+| `TURSO_AUTH_TOKEN` | the token from step 1 |
+| `NUXT_SESSION_PASSWORD` | a fresh 32+ character secret, **not** the one on your machine |
+| `NUXT_PUBLIC_APP_TIMEZONE` | the team's timezone, e.g. `Africa/Lagos` |
+| `CRON_SECRET` | any long random string |
+
+No code change switches the database over: NuxtHub sees `TURSO_DATABASE_URL` and
+`TURSO_AUTH_TOKEN` and uses libSQL instead of the local file.
+
+**4. Archiving on a schedule**
+
+`vercel.json` already registers a daily cron against `/api/cron/archive`. It needs `CRON_SECRET`
+set: Vercel only sends the bearer token when that variable exists, and the endpoint refuses to run
+without it rather than sitting open. Nitro's own `archive:monthly` task stays in the project for
+hosts that can run it, and simply never fires here.
+
+Hobby accounts are capped at one cron run per day, and Vercel only promises the run happens
+somewhere within the hour. Neither matters: a link falls due on a calendar date, so any run that
+day archives it. The lazy catch-up on browsing covers the rest regardless.
+
+### What to watch for on a serverless host
+
+- **The libSQL native binding.** `@libsql/client` loads its native module when imported, even when
+  the URL is remote, so this bites on Turso too. A deploy failing with
+  `Cannot find module '@libsql/linux-x64-gnu'` is this; see
+  [The native SQLite binding](#the-native-sqlite-binding).
+- **Sign-in rate limiting counts per instance.** It keeps its state in memory, and serverless runs
+  many instances, so the effective limit multiplies by however many are warm. It still blunts a
+  sustained attack, but if you want a real ceiling it needs a shared store such as Vercel KV.
+- **Back up the database.** `turso db shell psd-link-hub .dump > backup.sql`. It holds every link,
+  user and preference.
+
 ### The native SQLite binding
 
 `pnpm build` succeeds, but the bundle in `.output/` does **not** include libsql's
 platform-specific native binding — Nitro's dependency tracing misses it, and the server exits at
-startup with `Cannot find module '@libsql/<platform>'`.
+startup with `Cannot find module '@libsql/<platform>'`. Verified on a local production build; the
+same tracing applies wherever the bundle is shipped rather than installed.
 
 Either install production dependencies on the host rather than shipping `.output/` alone, or copy
 the matching package in after building:

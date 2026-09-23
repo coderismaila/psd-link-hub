@@ -44,6 +44,8 @@ export default defineNuxtConfig({
     }
   },
   runtimeConfig: {
+    // Set as CRON_SECRET on Vercel (the name it looks for) or NUXT_CRON_SECRET anywhere else.
+    cronSecret: '',
     adminEmail: '',
     adminPassword: '',
     adminName: 'Administrator',
