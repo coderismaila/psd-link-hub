@@ -50,7 +50,7 @@ export default defineNuxtConfig({
     adminPassword: '',
     adminName: 'Administrator',
     public: {
-      appTimezone: 'UTC'
+      appTimezone: 'Africa/Lagos'
     }
   },
   nitro: {

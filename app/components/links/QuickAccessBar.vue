@@ -88,7 +88,7 @@ function tileMenu(link: LinkWithPrefs, index: number): DropdownMenuItem[][] {
       <div
         v-for="(link, index) in quickAccess"
         :key="link.id"
-        class="ke-card group flex items-center gap-1 rounded-md border border-default bg-gradient-to-br from-primary/8 to-transparent pe-1 ps-1"
+        class="ke-card group flex items-center gap-1 rounded-md border border-default bg-linear-to-br from-primary/8 to-transparent pe-1 ps-1"
       >
         <UButton
           class="drag-handle min-h-10 min-w-8 cursor-grab active:cursor-grabbing"
