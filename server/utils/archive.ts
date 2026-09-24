@@ -29,7 +29,9 @@ async function archiveCandidates(includeYearly: boolean) {
  * "Archive overdue" buttons do. Running it twice in a row archives nothing the second time, since
  * only active links are considered.
  */
-export async function runAutoArchive(options: { force?: boolean } = {}): Promise<number> {
+export async function runAutoArchive(
+  options: { force?: boolean, actor?: { id: number | null, label: string } } = {}
+): Promise<number> {
   const settings = await getSettings()
 
   if (settings.mode === 'manual' && !options.force) {
@@ -50,6 +52,15 @@ export async function runAutoArchive(options: { force?: boolean } = {}): Promise
   }
 
   await updateSettings({ lastRunAt: now.toISOString() })
+
+  // Only worth an entry when something actually moved; a nightly no-op is noise.
+  if (due.length) {
+    await recordAudit(options.actor ?? SYSTEM_ACTOR, {
+      action: 'archive.run',
+      entityType: 'archive',
+      summary: `Archived ${due.length} link${due.length === 1 ? '' : 's'} past their period`
+    })
+  }
 
   return due.length
 }

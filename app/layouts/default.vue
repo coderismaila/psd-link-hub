@@ -16,6 +16,7 @@ const adminNav: NavigationMenuItem[] = [
   { label: 'Manage links', icon: 'i-lucide-table', to: '/admin/links' },
   { label: 'Categories', icon: 'i-lucide-tags', to: '/admin/categories' },
   { label: 'Users', icon: 'i-lucide-users', to: '/admin/users' },
+  { label: 'Audit trail', icon: 'i-lucide-scroll-text', to: '/admin/audit' },
   { label: 'Settings', icon: 'i-lucide-settings', to: '/admin/settings' }
 ]
 

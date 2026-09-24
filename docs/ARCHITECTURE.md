@@ -172,6 +172,7 @@ All handlers call an auth guard first. Response shapes are typed in `shared/type
 | GET / PUT `/api/admin/settings` | admin | Archive settings |
 | POST `/api/admin/archive/run` | admin | Run archive now → `{ archived: number }` |
 | GET `/api/admin/archive/overdue` | admin | Links past their archive date (for manual mode) |
+| GET `/api/admin/audit` | admin | Paged audit trail. Query `entityType, actorId, limit (max 100), offset` |
 
 ## 5. Archive logic
 
@@ -197,6 +198,7 @@ All handlers call an auth guard first. Response shapes are typed in `shared/type
 | `/admin/links` | default | UTable of every link with a status column and an All/Active/Archived filter, actions to archive and restore, "New link" → `LinkFormModal` |
 | `/admin/categories` | default | UTable + inline create/edit modal |
 | `/admin/users` | default | UTable + create/edit slideover |
+| `/admin/audit` | default | Paged, filterable record of who changed what |
 | `/admin/settings` | default | UForm: mode (URadioGroup), grace days (UInputNumber), include yearly (USwitch), Run now |
 
 `layouts/default.vue`: `UDashboardGroup` → `UDashboardSidebar` (collapsible, `UNavigationMenu`,
@@ -233,6 +235,24 @@ putting those tiles in the order the user wants.
 - All in `useQuickAccess()`, applied locally first and refetched on failure with a toast. The cached
   browse list has its row replaced (not mutated) so the card's star updates: Nuxt 4 returns
   `useFetch` data in a shallow ref, which ignores nested writes.
+
+## 8b. Audit trail
+
+`audit_logs` is append-only. Actor and entity are **denormalised** (`actorLabel`, `entityLabel`)
+because an id alone stops meaning anything once the user or link it points at is deleted — the
+entry for a deleted link must still say which link.
+
+`recordAudit(actor, input)` in `server/utils/audit.ts` is called by every mutating admin handler.
+It is deliberately **best-effort**: a failure is logged loudly but does not fail the operation that
+triggered it, since refusing to archive a link because a log row would not write trades a working
+app for a complete history. Treat the trail as a record, not as evidence.
+
+Recorded: link create/update/delete/archive/restore, category CRUD, user create/update/password
+reset, a user setting their own password, settings changes, and archive runs (attributed to
+`System` when the scheduler did it). Not recorded: browsing, pinning, or a personal archive —
+those are one person's own view, with nothing to account for.
+
+Passwords never appear in an entry, only the fact that one changed.
 
 ## 9. Shared types
 

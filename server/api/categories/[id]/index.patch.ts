@@ -4,7 +4,7 @@ import { categoryBodySchema } from '#shared/schemas/category'
 import { idParamSchema } from '#shared/schemas/link'
 
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  const actor = await requireAdmin(event)
 
   const id = idParamSchema.parse(getRouterParam(event, 'id'))
   const body = await readValidatedBody(event, categoryBodySchema.parse)
@@ -28,6 +28,14 @@ export default defineEventHandler(async (event) => {
   if (!updated.length) {
     throw createError({ statusCode: 404, statusMessage: 'Category not found' })
   }
+
+  await recordAudit(auditActor(actor), {
+    action: 'category.updated',
+    entityType: 'category',
+    entityId: id,
+    entityLabel: body.name,
+    summary: `Updated category ${body.name}`
+  })
 
   return { id }
 })

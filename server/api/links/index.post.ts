@@ -13,6 +13,14 @@ export default defineEventHandler(async (event) => {
     .values({ ...body, createdBy: user.id })
     .returning({ id: schema.links.id })
 
+  await recordAudit(auditActor(user), {
+    action: 'link.created',
+    entityType: 'link',
+    entityId: created!.id,
+    entityLabel: body.name,
+    summary: `Created link ${body.name}`
+  })
+
   setResponseStatus(event, 201)
 
   return { id: created!.id }

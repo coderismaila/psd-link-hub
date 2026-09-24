@@ -26,6 +26,7 @@ sheets archived automatically and each person's most-used sheets one tap away.
 | Create / edit / delete categories            | ✅ | ❌ |
 | Create / edit / deactivate users, set role, reset password | ✅ | ❌ |
 | Change archive settings, run archive now     | ✅ | ❌ |
+| View the audit trail                         | ✅ | ❌ |
 
 There is **no self sign-up**. The first admin is created by a seed task.
 
@@ -104,12 +105,15 @@ here — management is never filtered by one person's preferences.
 
 **US-8 Manage users (admin).** List users; create (name, email, role, temporary password); edit name/role; deactivate/reactivate; reset password. An admin cannot demote or deactivate themselves, and the last active admin cannot be demoted/deactivated.
 
+**US-9a Audit trail (admin).** As an admin I can see who changed what and when, filtered by area
+and paged. Entries survive the deletion of whatever they refer to, and never contain a password.
+
 **US-9 Settings (admin).** Edit archive mode, grace days, include-yearly; see last run; "Run archive now" shows how many links were archived.
 
 **US-10 Responsive.** Usable at 375px width: sidebar becomes a drawer, tables become cards, forms are full-width modals/slideovers, tap targets ≥ 40px. Light and dark mode.
 
 ## 7. Out of scope (MVP)
-Google OAuth / Drive API integration, auto-creating sheets, email notifications, audit log UI,
+Google OAuth / Drive API integration, auto-creating sheets, email notifications,
 multi-tenant/teams, per-user archive settings, link click analytics.
 
 ## 8. Open questions (defaults chosen — confirm or change)

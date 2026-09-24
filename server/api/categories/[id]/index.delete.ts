@@ -3,7 +3,7 @@ import { count, eq } from 'drizzle-orm'
 import { idParamSchema } from '#shared/schemas/link'
 
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  const actor = await requireAdmin(event)
 
   const id = idParamSchema.parse(getRouterParam(event, 'id'))
 
@@ -25,11 +25,19 @@ export default defineEventHandler(async (event) => {
   const deleted = await db
     .delete(schema.categories)
     .where(eq(schema.categories.id, id))
-    .returning({ id: schema.categories.id })
+    .returning({ id: schema.categories.id, name: schema.categories.name })
 
   if (!deleted.length) {
     throw createError({ statusCode: 404, statusMessage: 'Category not found' })
   }
+
+  await recordAudit(auditActor(actor), {
+    action: 'category.deleted',
+    entityType: 'category',
+    entityId: id,
+    entityLabel: deleted[0]!.name,
+    summary: `Deleted category ${deleted[0]!.name}`
+  })
 
   return { deleted: true }
 })

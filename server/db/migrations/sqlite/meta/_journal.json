@@ -15,6 +15,13 @@
       "when": 1790238427986,
       "tag": "0001_confused_sauron",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1790247983248,
+      "tag": "0002_known_gargoyle",
+      "breakpoints": true
     }
   ]
 }

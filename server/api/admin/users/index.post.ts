@@ -4,7 +4,7 @@ import { createUserSchema } from '#shared/schemas/user'
 import type { UserDTO } from '#shared/types/user'
 
 export default defineEventHandler(async (event): Promise<UserDTO> => {
-  await requireAdmin(event)
+  const actor = await requireAdmin(event)
   const body = await readValidatedBody(event, createUserSchema.parse)
 
   const [existing] = await db
@@ -28,6 +28,14 @@ export default defineEventHandler(async (event): Promise<UserDTO> => {
       mustChangePassword: true
     })
     .returning(publicUserColumns)
+
+  await recordAudit(auditActor(actor), {
+    action: 'user.created',
+    entityType: 'user',
+    entityId: created!.id,
+    entityLabel: body.name,
+    summary: `Created ${body.role} account for ${body.email}`
+  })
 
   setResponseStatus(event, 201)
 

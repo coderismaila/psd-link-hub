@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm'
 import { categoryBodySchema } from '#shared/schemas/category'
 
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  const actor = await requireAdmin(event)
   const body = await readValidatedBody(event, categoryBodySchema.parse)
 
   const [existing] = await db
@@ -20,6 +20,14 @@ export default defineEventHandler(async (event) => {
     .insert(schema.categories)
     .values(body)
     .returning({ id: schema.categories.id })
+
+  await recordAudit(auditActor(actor), {
+    action: 'category.created',
+    entityType: 'category',
+    entityId: created!.id,
+    entityLabel: body.name,
+    summary: `Created category ${body.name}`
+  })
 
   setResponseStatus(event, 201)
 

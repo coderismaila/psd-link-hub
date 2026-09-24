@@ -47,5 +47,23 @@ export default defineEventHandler(async (event): Promise<UserDTO> => {
     .where(eq(schema.users.id, id))
     .returning(publicUserColumns)
 
+  const changed = changedFields(target, body)
+
+  const notes: string[] = []
+  if (changed.includes('role')) notes.push(`role to ${body.role}`)
+  if (changed.includes('isActive')) notes.push(body.isActive ? 'reactivated' : 'deactivated')
+  if (changed.includes('name')) notes.push(`name to ${body.name}`)
+
+  await recordAudit(auditActor(actor), {
+    action: 'user.updated',
+    entityType: 'user',
+    entityId: id,
+    entityLabel: target.name,
+    summary: notes.length
+      ? `Changed ${target.email}: ${notes.join(', ')}`
+      : `Saved ${target.email} with no changes`,
+    changedFields: changed
+  })
+
   return toUserDTO(updated!)
 })

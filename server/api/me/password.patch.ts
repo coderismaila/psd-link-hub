@@ -28,5 +28,13 @@ export default defineEventHandler(async (event) => {
     user: toSessionUser({ ...user, mustChangePassword: false })
   })
 
+  await recordAudit(auditActor(user), {
+    action: 'user.password_changed',
+    entityType: 'user',
+    entityId: user.id,
+    entityLabel: user.name,
+    summary: 'Set their own password'
+  })
+
   return { changed: true }
 })

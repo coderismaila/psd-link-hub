@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm'
 import { idParamSchema } from '#shared/schemas/link'
 
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  const actor = await requireAdmin(event)
 
   const id = idParamSchema.parse(getRouterParam(event, 'id'))
 
@@ -11,11 +11,20 @@ export default defineEventHandler(async (event) => {
   const deleted = await db
     .delete(schema.links)
     .where(eq(schema.links.id, id))
-    .returning({ id: schema.links.id })
+    .returning({ id: schema.links.id, name: schema.links.name })
 
   if (!deleted.length) {
     throw createError({ statusCode: 404, statusMessage: 'Link not found' })
   }
+
+  // The name is captured here because after this the link no longer exists to look up.
+  await recordAudit(auditActor(actor), {
+    action: 'link.deleted',
+    entityType: 'link',
+    entityId: id,
+    entityLabel: deleted[0]!.name,
+    summary: `Deleted link ${deleted[0]!.name}`
+  })
 
   return { deleted: true }
 })

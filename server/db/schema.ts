@@ -64,6 +64,32 @@ export const userLinkPrefs = sqliteTable('user_link_prefs', {
   index('prefs_user_fav_idx').on(t.userId, t.isQuickAccess)
 ])
 
+/**
+ * An append-only record of who changed what. Actor and entity are denormalised on purpose: a row
+ * must still read sensibly after the user or the link it refers to has been deleted, which an id
+ * alone would not survive.
+ */
+export const auditLogs = sqliteTable('audit_logs', {
+  id: integer().primaryKey({ autoIncrement: true }),
+  actorId: integer('actor_id').references(() => users.id, { onDelete: 'set null' }),
+  /** The actor's name at the time, or 'System' for anything the scheduler did. */
+  actorLabel: text('actor_label').notNull(),
+  /** Dotted verb, e.g. `link.archived`. */
+  action: text().notNull(),
+  entityType: text('entity_type', { enum: ['link', 'category', 'user', 'settings', 'archive'] }).notNull(),
+  entityId: integer('entity_id'),
+  /** The entity's name at the time, so a deleted thing is still identifiable. */
+  entityLabel: text('entity_label'),
+  summary: text().notNull(),
+  /** JSON-encoded extras, such as which fields an update touched. */
+  metadata: text(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date())
+}, t => [
+  index('audit_created_idx').on(t.createdAt),
+  index('audit_entity_idx').on(t.entityType, t.entityId),
+  index('audit_actor_idx').on(t.actorId)
+])
+
 export const settings = sqliteTable('settings', {
   key: text().primaryKey(),
   value: text().notNull(), // JSON-encoded

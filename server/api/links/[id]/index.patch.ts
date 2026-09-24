@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm'
 import { idParamSchema, linkBodySchema } from '#shared/schemas/link'
 
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  const actor = await requireAdmin(event)
 
   const id = idParamSchema.parse(getRouterParam(event, 'id'))
   const body = await readValidatedBody(event, linkBodySchema.parse)
@@ -18,15 +18,27 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'That category no longer exists' })
   }
 
-  const updated = await db
-    .update(schema.links)
-    .set(body)
+  // Read first, so the entry can say which fields moved rather than just that something did.
+  const [before] = await db
+    .select()
+    .from(schema.links)
     .where(eq(schema.links.id, id))
-    .returning({ id: schema.links.id })
+    .limit(1)
 
-  if (!updated.length) {
+  if (!before) {
     throw createError({ statusCode: 404, statusMessage: 'Link not found' })
   }
+
+  await db.update(schema.links).set(body).where(eq(schema.links.id, id))
+
+  await recordAudit(auditActor(actor), {
+    action: 'link.updated',
+    entityType: 'link',
+    entityId: id,
+    entityLabel: body.name,
+    summary: `Updated link ${body.name}`,
+    changedFields: changedFields(before, body)
+  })
 
   return { id }
 })
