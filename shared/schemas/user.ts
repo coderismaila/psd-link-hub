@@ -28,5 +28,16 @@ export const resetPasswordSchema = z.object({
   password: passwordSchema
 })
 
+/** What a user submits to replace their own password. */
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Enter your current password'),
+  newPassword: passwordSchema
+}).refine(value => value.newPassword !== value.currentPassword, {
+  path: ['newPassword'],
+  message: 'Choose a password different from your current one'
+})
+
+export type ChangePasswordBody = z.output<typeof changePasswordSchema>
+
 export type CreateUserBody = z.output<typeof createUserSchema>
 export type UpdateUserBody = z.output<typeof updateUserSchema>

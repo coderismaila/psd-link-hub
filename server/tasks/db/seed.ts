@@ -44,7 +44,9 @@ export default defineTask({
           name: config.adminName || 'Administrator',
           passwordHash: await hashPassword(config.adminPassword),
           role: 'admin',
-          isActive: true
+          isActive: true,
+          // It came from .env, so the first thing the admin does is replace it.
+          mustChangePassword: true
         })
         .returning({ id: schema.users.id })
 

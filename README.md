@@ -68,6 +68,10 @@ twice: it skips the admin if one already exists and skips the samples if any lin
 The task only creates the admin when none exists, so editing `.env` afterwards will not update the
 password — reset it from `/admin/users` instead.
 
+The seeded admin is asked to replace that password on first sign-in, as is anyone an admin creates
+or resets. Until they do, every endpoint but the password one answers 403, so a password typed by
+someone else never becomes a lasting one.
+
 ## Checks
 
 ```bash

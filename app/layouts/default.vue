@@ -32,6 +32,11 @@ async function logout() {
 const userMenuItems = computed<DropdownMenuItem[][]>(() => [
   [{ label: user.value?.email ?? '', type: 'label' }],
   [{
+    label: 'Change password',
+    icon: 'i-lucide-key-round',
+    to: '/change-password'
+  }],
+  [{
     // A static label keeps the server and client markup identical — the active colour mode is
     // only known in the browser.
     label: 'Toggle theme',

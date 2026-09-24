@@ -22,6 +22,8 @@ export default defineNitroPlugin(() => {
       throw createError({ statusCode: 401, statusMessage: 'Your session is no longer valid' })
     }
 
+    // Deliberately does not throw on a pending password change: the client needs a readable
+    // session to know it should send the user to the change-password page.
     session.user = toSessionUser(user)
   })
 })

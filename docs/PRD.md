@@ -15,6 +15,7 @@ sheets archived automatically and each person's most-used sheets one tap away.
 | Capability                                   | Admin | Viewer |
 |----------------------------------------------|:-----:|:------:|
 | Log in / log out                             | ✅ | ✅ |
+| Change their own password                    | ✅ | ✅ |
 | View & search active links, open in new tab  | ✅ | ✅ |
 | Pin / unpin a link (personal quick access)   | ✅ | ✅ |
 | Reorder their quick-access links             | ✅ | ✅ |
@@ -62,6 +63,11 @@ a bulk "Archive overdue" action instead.
 ## 6. User stories & acceptance criteria
 
 **US-1 Login.** As any user I log in with email + password.
+- A password an admin issued — on account creation or on reset — must be replaced before the app
+  can be used. The user is held on the change-password page and every other endpoint answers 403
+  until they choose their own. Changing it needs the current password, so a borrowed session
+  cannot take the account.
+- Any user can change their password voluntarily from the user menu.
 - Wrong credentials → generic error; deactivated users cannot log in.
 - All pages except `/login` require a session; admin pages require role `admin` (server-enforced).
 

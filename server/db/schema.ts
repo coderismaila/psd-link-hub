@@ -12,6 +12,11 @@ export const users = sqliteTable('users', {
   passwordHash: text('password_hash').notNull(),
   role: text({ enum: ['admin', 'viewer'] }).notNull().default('viewer'),
   isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
+  /**
+   * Set whenever an admin puts a password on the account — on create, and on reset. Cleared the
+   * moment the user chooses their own, so a password an admin typed is never a lasting one.
+   */
+  mustChangePassword: integer('must_change_password', { mode: 'boolean' }).notNull().default(false),
   ...timestamps
 })
 

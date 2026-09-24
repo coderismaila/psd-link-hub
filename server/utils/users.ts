@@ -12,6 +12,7 @@ export const publicUserColumns = {
   email: schema.users.email,
   role: schema.users.role,
   isActive: schema.users.isActive,
+  mustChangePassword: schema.users.mustChangePassword,
   createdAt: schema.users.createdAt,
   updatedAt: schema.users.updatedAt
 } as const
@@ -25,6 +26,7 @@ export function toUserDTO(row: PublicUserRow): UserDTO {
     email: row.email,
     role: row.role,
     isActive: row.isActive,
+    mustChangePassword: row.mustChangePassword,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString()
   }

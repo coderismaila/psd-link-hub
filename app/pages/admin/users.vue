@@ -170,13 +170,27 @@ function isSelf(user: UserDTO) {
       </template>
 
       <template #isActive-cell="{ row }">
-        <UBadge
-          :color="row.original.isActive ? 'success' : 'neutral'"
-          variant="subtle"
-          size="sm"
-        >
-          {{ row.original.isActive ? 'Active' : 'Deactivated' }}
-        </UBadge>
+        <div class="flex flex-wrap gap-1">
+          <UBadge
+            :color="row.original.isActive ? 'success' : 'neutral'"
+            variant="subtle"
+            size="sm"
+          >
+            {{ row.original.isActive ? 'Active' : 'Deactivated' }}
+          </UBadge>
+
+          <!-- Tells an admin who is still on the password they handed over. -->
+          <UBadge
+            v-if="row.original.mustChangePassword"
+            color="warning"
+            variant="subtle"
+            size="sm"
+            icon="i-lucide-key-round"
+            title="Still using the password you issued"
+          >
+            Not set
+          </UBadge>
+        </div>
       </template>
 
       <template #actions-cell="{ row }">

@@ -5,6 +5,7 @@ export interface UserDTO {
   email: string
   role: 'admin' | 'viewer'
   isActive: boolean
+  mustChangePassword: boolean
   createdAt: string
   updatedAt: string
 }

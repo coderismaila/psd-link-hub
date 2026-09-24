@@ -24,7 +24,8 @@ export default defineEventHandler(async (event): Promise<UserDTO> => {
       email: body.email,
       role: body.role,
       isActive: true,
-      passwordHash: await hashPassword(body.password)
+      passwordHash: await hashPassword(body.password),
+      mustChangePassword: true
     })
     .returning(publicUserColumns)
 

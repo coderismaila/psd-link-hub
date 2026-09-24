@@ -55,6 +55,8 @@ export const users = sqliteTable('users', {
   passwordHash: text('password_hash').notNull(),
   role: text({ enum: ['admin', 'viewer'] }).notNull().default('viewer'),
   isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
+  // Set when an admin issues a password; cleared when the user picks their own.
+  mustChangePassword: integer('must_change_password', { mode: 'boolean' }).notNull().default(false),
   ...timestamps,
 })
 
@@ -133,7 +135,9 @@ export {}
   Same generic 401 message for "no user" and "bad password".
 - Logout on the client: `const { clear } = useUserSession(); await clear(); navigateTo('/login')`.
 - `server/utils/auth.ts`:
-  - `requireAuthUser(event)` → `requireUserSession(event)`, then reload the user row from DB;
+  - `requireAuthUser(event)` → 403 while `mustChangePassword` is set, unless the caller passes
+    `{ allowPendingPasswordChange: true }` (only the password endpoint does). Then
+    `requireUserSession(event)`, then reload the user row from DB;
     if missing or inactive → `clearUserSession` + 401. If role changed, refresh the session. Returns the DB user.
   - `requireAdmin(event)` → `requireAuthUser` + 403 unless `role === 'admin'`.
 - `app/middleware/auth.global.ts` → redirect to `/login` when `!loggedIn` (skip `/login`); redirect logged-in users away from `/login`.
@@ -147,6 +151,7 @@ All handlers call an auth guard first. Response shapes are typed in `shared/type
 | Method & path | Guard | Purpose |
 |---|---|---|
 | POST `/api/auth/login` | public | Log in |
+| PATCH `/api/me/password` | user | Change own password. Requires the current one. Clears `mustChangePassword`. The only route reachable while that flag is set |
 | GET `/api/links` | user | Active links merged with caller's prefs. Query: `q, categoryId, periodType, year, month`. Excludes global-archived and caller's personal-archived. Calls `maybeRunAutoArchive()` first. |
 | GET `/api/links/quick-access` | user | Caller's pinned links (active only), ordered by `quickAccessOrder` |
 | GET `/api/links/archived` | user | Query `scope=mine\|global` + same filters |
