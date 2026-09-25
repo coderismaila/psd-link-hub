@@ -242,10 +242,27 @@ putting those tiles in the order the user wants.
 because an id alone stops meaning anything once the user or link it points at is deleted — the
 entry for a deleted link must still say which link.
 
-`recordAudit(actor, input)` in `server/utils/audit.ts` is called by every mutating admin handler.
-It is deliberately **best-effort**: a failure is logged loudly but does not fail the operation that
-triggered it, since refusing to archive a link because a log row would not write trades a working
-app for a complete history. Treat the trail as a record, not as evidence.
+`recordAudit(tx, actor, input)` in `server/utils/audit.ts` is called by every mutating admin
+handler, **inside the same `db.transaction` as the change it describes**:
+
+- **Atomic.** The change and its entry commit or roll back together. There is no change without an
+  entry, and no entry for a change that did not happen.
+- **Fail closed.** `recordAudit` does not catch. If the entry cannot be written, the transaction
+  rolls back and the request fails with a 500 — an admin action that cannot be accounted for does
+  not go ahead.
+- The transaction handle is a required argument rather than defaulting to `db`, so a new call site
+  cannot quietly record outside the transaction it belongs to.
+
+Reads that feed a decision happen inside the transaction too — the "before" row an update diffs
+against, and the last-admin check on user changes, which also makes that guard hold when two admins
+act at once. Password hashing happens *before* the transaction opens: scrypt is slow on purpose, and
+a write transaction holds Turso's lock for as long as it is open.
+
+The one caller that must not fail closed is the lazy archive run inside `GET /api/links`. It already
+catches and logs, so a blocked audit write rolls the run back — nothing archived, no `lastRunAt`
+stamp — browsing carries on, and the run retries on the next request.
+
+Rows can still be deleted by anyone with direct database access; nothing in the app exposes that.
 
 Recorded: link create/update/delete/archive/restore, category CRUD, user create/update/password
 reset, a user setting their own password, settings changes, and archive runs (attributed to

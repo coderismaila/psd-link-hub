@@ -18,26 +18,29 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'That category no longer exists' })
   }
 
-  // Read first, so the entry can say which fields moved rather than just that something did.
-  const [before] = await db
-    .select()
-    .from(schema.links)
-    .where(eq(schema.links.id, id))
-    .limit(1)
+  await db.transaction(async (tx) => {
+    // Read inside the transaction, so the recorded diff is against the row as it was at the
+    // moment it changed, not as it was a request ago.
+    const [before] = await tx
+      .select()
+      .from(schema.links)
+      .where(eq(schema.links.id, id))
+      .limit(1)
 
-  if (!before) {
-    throw createError({ statusCode: 404, statusMessage: 'Link not found' })
-  }
+    if (!before) {
+      throw createError({ statusCode: 404, statusMessage: 'Link not found' })
+    }
 
-  await db.update(schema.links).set(body).where(eq(schema.links.id, id))
+    await tx.update(schema.links).set(body).where(eq(schema.links.id, id))
 
-  await recordAudit(auditActor(actor), {
-    action: 'link.updated',
-    entityType: 'link',
-    entityId: id,
-    entityLabel: body.name,
-    summary: `Updated link ${body.name}`,
-    changedFields: changedFields(before, body)
+    await recordAudit(tx, auditActor(actor), {
+      action: 'link.updated',
+      entityType: 'link',
+      entityId: id,
+      entityLabel: body.name,
+      summary: `Updated link ${body.name}`,
+      changedFields: changedFields(before, body)
+    })
   })
 
   return { id }

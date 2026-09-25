@@ -6,12 +6,12 @@ import { isArchiveDue } from '#shared/utils/period'
 const LAZY_RUN_INTERVAL_MS = 60 * 60 * 1000
 
 /** The active links auto-archive is allowed to consider, given the include-yearly setting. */
-async function archiveCandidates(includeYearly: boolean) {
+async function archiveCandidates(includeYearly: boolean, tx: DbExecutor) {
   const where = includeYearly
     ? eq(schema.links.status, 'active')
     : and(eq(schema.links.status, 'active'), eq(schema.links.periodType, 'monthly'))
 
-  return await db
+  return await tx
     .select({
       id: schema.links.id,
       periodType: schema.links.periodType,
@@ -41,28 +41,47 @@ export async function runAutoArchive(
   const timeZone = useRuntimeConfig().public.appTimezone
   const now = new Date()
 
-  const due = (await archiveCandidates(settings.includeYearly))
-    .filter(link => isArchiveDue(link, settings.graceDays, now, timeZone))
+  /*
+   * One transaction for the whole run: the archiving, the last-run stamp and the audit entry
+   * commit together or not at all. If the entry cannot be written the run rolls back and throws;
+   * the lazy caller in `GET /api/links` catches that, so browsing carries on and the run is simply
+   * retried on a later request — never an archive that went unrecorded.
+   */
+  return await db.transaction(async (tx) => {
+    const due = (await archiveCandidates(settings.includeYearly, tx))
+      .filter(link => isArchiveDue(link, settings.graceDays, now, timeZone))
 
-  if (due.length) {
-    await db
-      .update(schema.links)
-      .set({ status: 'archived', archivedAt: now, archivedBy: 'system', archivedByUserId: null })
-      .where(inArray(schema.links.id, due.map(link => link.id)))
-  }
+    // Restricted to rows still active, and counted from what the update actually changed, so two
+    // overlapping runs cannot both claim — and both record — the same links.
+    const archived = due.length
+      ? await tx
+          .update(schema.links)
+          .set({ status: 'archived', archivedAt: now, archivedBy: 'system', archivedByUserId: null })
+          .where(and(
+            inArray(schema.links.id, due.map(link => link.id)),
+            eq(schema.links.status, 'active')
+          ))
+          .returning({ name: schema.links.name })
+      : []
 
-  await updateSettings({ lastRunAt: now.toISOString() })
+    await updateSettings({ lastRunAt: now.toISOString() }, tx)
 
-  // Only worth an entry when something actually moved; a nightly no-op is noise.
-  if (due.length) {
-    await recordAudit(options.actor ?? SYSTEM_ACTOR, {
-      action: 'archive.run',
-      entityType: 'archive',
-      summary: `Archived ${due.length} link${due.length === 1 ? '' : 's'} past their period`
-    })
-  }
+    // Only worth an entry when something actually moved; a nightly no-op is noise.
+    if (archived.length) {
+      const names = archived.map(link => link.name)
+      const listed = names.length > 5
+        ? `${names.slice(0, 5).join(', ')} and ${names.length - 5} more`
+        : names.join(', ')
 
-  return due.length
+      await recordAudit(tx, options.actor ?? SYSTEM_ACTOR, {
+        action: 'archive.run',
+        entityType: 'archive',
+        summary: `Archived ${archived.length} link${archived.length === 1 ? '' : 's'} past their period: ${listed}`
+      })
+    }
+
+    return archived.length
+  })
 }
 
 /**

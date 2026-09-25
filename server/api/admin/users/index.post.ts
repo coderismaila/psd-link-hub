@@ -17,27 +17,35 @@ export default defineEventHandler(async (event): Promise<UserDTO> => {
     throw createError({ statusCode: 409, statusMessage: 'That email address is already in use' })
   }
 
-  const [created] = await db
-    .insert(schema.users)
-    .values({
-      name: body.name,
-      email: body.email,
-      role: body.role,
-      isActive: true,
-      passwordHash: await hashPassword(body.password),
-      mustChangePassword: true
-    })
-    .returning(publicUserColumns)
+  // Hashed before the transaction opens: scrypt is slow on purpose, and there is no reason to hold
+  // a write lock while it runs.
+  const passwordHash = await hashPassword(body.password)
 
-  await recordAudit(auditActor(actor), {
-    action: 'user.created',
-    entityType: 'user',
-    entityId: created!.id,
-    entityLabel: body.name,
-    summary: `Created ${body.role} account for ${body.email}`
+  const created = await db.transaction(async (tx) => {
+    const [row] = await tx
+      .insert(schema.users)
+      .values({
+        name: body.name,
+        email: body.email,
+        role: body.role,
+        isActive: true,
+        passwordHash,
+        mustChangePassword: true
+      })
+      .returning(publicUserColumns)
+
+    await recordAudit(tx, auditActor(actor), {
+      action: 'user.created',
+      entityType: 'user',
+      entityId: row!.id,
+      entityLabel: body.name,
+      summary: `Created ${body.role} account for ${body.email}`
+    })
+
+    return row!
   })
 
   setResponseStatus(event, 201)
 
-  return toUserDTO(created!)
+  return toUserDTO(created)
 })

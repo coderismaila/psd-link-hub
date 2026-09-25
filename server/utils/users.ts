@@ -32,9 +32,15 @@ export function toUserDTO(row: PublicUserRow): UserDTO {
   }
 }
 
-/** Whether any active admin other than `excludeUserId` exists. */
-export async function hasOtherActiveAdmin(excludeUserId: number): Promise<boolean> {
-  const [other] = await db
+/**
+ * Whether any active admin other than `excludeUserId` exists. Pass the transaction the change is
+ * being made in, so the answer cannot go stale between checking and writing.
+ */
+export async function hasOtherActiveAdmin(
+  excludeUserId: number,
+  tx: DbExecutor = db
+): Promise<boolean> {
+  const [other] = await tx
     .select({ id: schema.users.id })
     .from(schema.users)
     .where(and(

@@ -42,9 +42,12 @@ function decode(raw: string): unknown {
   }
 }
 
-/** Reads every archive setting, filling in defaults for rows that are missing or invalid. */
-export async function getSettings(): Promise<ArchiveSettings> {
-  const rows = await db.select().from(schema.settings)
+/**
+ * Reads every archive setting, filling in defaults for rows that are missing or invalid. Pass a
+ * transaction to read within it.
+ */
+export async function getSettings(tx: DbExecutor = db): Promise<ArchiveSettings> {
+  const rows = await tx.select().from(schema.settings)
   const values = new Map(rows.map(row => [row.key, decode(row.value)]))
 
   return {
@@ -55,19 +58,25 @@ export async function getSettings(): Promise<ArchiveSettings> {
   }
 }
 
-/** Upserts the given fields and returns the full, merged settings. */
-export async function updateSettings(patch: Partial<ArchiveSettings>): Promise<ArchiveSettings> {
+/**
+ * Upserts the given fields and returns the full, merged settings. Pass a transaction to write
+ * within it — the settings form does, so a change and its audit entry land together.
+ */
+export async function updateSettings(
+  patch: Partial<ArchiveSettings>,
+  tx: DbExecutor = db
+): Promise<ArchiveSettings> {
   const updatedAt = new Date()
   const rows = (Object.keys(KEYS) as Field[])
     .filter(field => patch[field] !== undefined)
     .map(field => ({ key: KEYS[field], value: JSON.stringify(patch[field]), updatedAt }))
 
   for (const row of rows) {
-    await db.insert(schema.settings).values(row).onConflictDoUpdate({
+    await tx.insert(schema.settings).values(row).onConflictDoUpdate({
       target: schema.settings.key,
       set: { value: row.value, updatedAt }
     })
   }
 
-  return getSettings()
+  return getSettings(tx)
 }

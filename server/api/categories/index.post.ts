@@ -16,20 +16,24 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 409, statusMessage: 'A category with that name already exists' })
   }
 
-  const [created] = await db
-    .insert(schema.categories)
-    .values(body)
-    .returning({ id: schema.categories.id })
+  const id = await db.transaction(async (tx) => {
+    const [created] = await tx
+      .insert(schema.categories)
+      .values(body)
+      .returning({ id: schema.categories.id })
 
-  await recordAudit(auditActor(actor), {
-    action: 'category.created',
-    entityType: 'category',
-    entityId: created!.id,
-    entityLabel: body.name,
-    summary: `Created category ${body.name}`
+    await recordAudit(tx, auditActor(actor), {
+      action: 'category.created',
+      entityType: 'category',
+      entityId: created!.id,
+      entityLabel: body.name,
+      summary: `Created category ${body.name}`
+    })
+
+    return created!.id
   })
 
   setResponseStatus(event, 201)
 
-  return { id: created!.id }
+  return { id }
 })

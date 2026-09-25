@@ -22,21 +22,23 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const deleted = await db
-    .delete(schema.categories)
-    .where(eq(schema.categories.id, id))
-    .returning({ id: schema.categories.id, name: schema.categories.name })
+  await db.transaction(async (tx) => {
+    const deleted = await tx
+      .delete(schema.categories)
+      .where(eq(schema.categories.id, id))
+      .returning({ id: schema.categories.id, name: schema.categories.name })
 
-  if (!deleted.length) {
-    throw createError({ statusCode: 404, statusMessage: 'Category not found' })
-  }
+    if (!deleted.length) {
+      throw createError({ statusCode: 404, statusMessage: 'Category not found' })
+    }
 
-  await recordAudit(auditActor(actor), {
-    action: 'category.deleted',
-    entityType: 'category',
-    entityId: id,
-    entityLabel: deleted[0]!.name,
-    summary: `Deleted category ${deleted[0]!.name}`
+    await recordAudit(tx, auditActor(actor), {
+      action: 'category.deleted',
+      entityType: 'category',
+      entityId: id,
+      entityLabel: deleted[0]!.name,
+      summary: `Deleted category ${deleted[0]!.name}`
+    })
   })
 
   return { deleted: true }

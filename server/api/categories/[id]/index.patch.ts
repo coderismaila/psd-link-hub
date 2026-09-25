@@ -19,22 +19,24 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 409, statusMessage: 'A category with that name already exists' })
   }
 
-  const updated = await db
-    .update(schema.categories)
-    .set(body)
-    .where(eq(schema.categories.id, id))
-    .returning({ id: schema.categories.id })
+  await db.transaction(async (tx) => {
+    const updated = await tx
+      .update(schema.categories)
+      .set(body)
+      .where(eq(schema.categories.id, id))
+      .returning({ id: schema.categories.id })
 
-  if (!updated.length) {
-    throw createError({ statusCode: 404, statusMessage: 'Category not found' })
-  }
+    if (!updated.length) {
+      throw createError({ statusCode: 404, statusMessage: 'Category not found' })
+    }
 
-  await recordAudit(auditActor(actor), {
-    action: 'category.updated',
-    entityType: 'category',
-    entityId: id,
-    entityLabel: body.name,
-    summary: `Updated category ${body.name}`
+    await recordAudit(tx, auditActor(actor), {
+      action: 'category.updated',
+      entityType: 'category',
+      entityId: id,
+      entityLabel: body.name,
+      summary: `Updated category ${body.name}`
+    })
   })
 
   return { id }

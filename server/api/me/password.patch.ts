@@ -15,25 +15,28 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 403, statusMessage: 'That is not your current password' })
   }
 
-  await db
-    .update(schema.users)
-    .set({
-      passwordHash: await hashPassword(newPassword),
-      mustChangePassword: false
-    })
-    .where(eq(schema.users.id, user.id))
+  // Hashed before the transaction opens, so the write lock is not held while scrypt runs.
+  const passwordHash = await hashPassword(newPassword)
 
-  // Refresh the session so the client stops redirecting to the change-password page.
-  await setUserSession(event, {
-    user: toSessionUser({ ...user, mustChangePassword: false })
+  await db.transaction(async (tx) => {
+    await tx
+      .update(schema.users)
+      .set({ passwordHash, mustChangePassword: false })
+      .where(eq(schema.users.id, user.id))
+
+    await recordAudit(tx, auditActor(user), {
+      action: 'user.password_changed',
+      entityType: 'user',
+      entityId: user.id,
+      entityLabel: user.name,
+      summary: 'Set their own password'
+    })
   })
 
-  await recordAudit(auditActor(user), {
-    action: 'user.password_changed',
-    entityType: 'user',
-    entityId: user.id,
-    entityLabel: user.name,
-    summary: 'Set their own password'
+  // Only once the change has committed: refreshing earlier would tell the client the requirement
+  // was met even if the transaction then rolled back.
+  await setUserSession(event, {
+    user: toSessionUser({ ...user, mustChangePassword: false })
   })
 
   return { changed: true }

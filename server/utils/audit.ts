@@ -1,5 +1,12 @@
-import { db, schema } from '@nuxthub/db'
+import { schema } from '@nuxthub/db'
+import type { db } from '@nuxthub/db'
 import type { AuditEntityType } from '#shared/types/audit'
+
+/** The transaction handle Drizzle passes to `db.transaction(async tx => …)`. */
+export type DbTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0]
+
+/** Anything that can run a statement: the database itself, or a transaction in progress. */
+export type DbExecutor = typeof db | DbTransaction
 
 export interface AuditInput {
   action: string
@@ -15,33 +22,34 @@ export interface AuditInput {
 export const SYSTEM_ACTOR = { id: null, label: 'System' } as const
 
 /**
- * Appends one entry to the trail.
+ * Appends one entry to the trail, inside the caller's transaction.
  *
- * A failure here is logged loudly but does not fail the operation that triggered it: refusing to
- * archive a link because a log row would not write trades a working app for a complete history,
- * which is the wrong way round for a tool like this. The trade-off is that the trail is
- * best-effort, not guaranteed — worth knowing before treating it as evidence.
+ * Callers run this in the same `db.transaction` as the change it describes, so the two commit or
+ * roll back together: there is no change without its entry, and no entry for a change that did
+ * not happen. It deliberately does not catch — if the entry cannot be written, the error
+ * propagates, the transaction rolls back, and the action fails. An admin action that cannot be
+ * accounted for does not go ahead.
+ *
+ * The executor is required rather than defaulting to `db`, so a call site cannot quietly record
+ * outside the transaction it belongs to.
  */
 export async function recordAudit(
+  tx: DbExecutor,
   actor: { id: number | null, label: string },
   input: AuditInput
 ): Promise<void> {
-  try {
-    await db.insert(schema.auditLogs).values({
-      actorId: actor.id,
-      actorLabel: actor.label,
-      action: input.action,
-      entityType: input.entityType,
-      entityId: input.entityId ?? null,
-      entityLabel: input.entityLabel ?? null,
-      summary: input.summary,
-      metadata: input.changedFields?.length
-        ? JSON.stringify({ changedFields: input.changedFields })
-        : null
-    })
-  } catch (error) {
-    console.error('[audit] Failed to record entry:', input.action, error)
-  }
+  await tx.insert(schema.auditLogs).values({
+    actorId: actor.id,
+    actorLabel: actor.label,
+    action: input.action,
+    entityType: input.entityType,
+    entityId: input.entityId ?? null,
+    entityLabel: input.entityLabel ?? null,
+    summary: input.summary,
+    metadata: input.changedFields?.length
+      ? JSON.stringify({ changedFields: input.changedFields })
+      : null
+  })
 }
 
 /** Convenience for handlers that already hold the acting user. */

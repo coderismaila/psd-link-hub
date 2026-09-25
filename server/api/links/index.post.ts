@@ -8,22 +8,26 @@ export default defineEventHandler(async (event) => {
 
   await assertCategoryExists(body.categoryId)
 
-  const [created] = await db
-    .insert(schema.links)
-    .values({ ...body, createdBy: user.id })
-    .returning({ id: schema.links.id })
+  const id = await db.transaction(async (tx) => {
+    const [created] = await tx
+      .insert(schema.links)
+      .values({ ...body, createdBy: user.id })
+      .returning({ id: schema.links.id })
 
-  await recordAudit(auditActor(user), {
-    action: 'link.created',
-    entityType: 'link',
-    entityId: created!.id,
-    entityLabel: body.name,
-    summary: `Created link ${body.name}`
+    await recordAudit(tx, auditActor(user), {
+      action: 'link.created',
+      entityType: 'link',
+      entityId: created!.id,
+      entityLabel: body.name,
+      summary: `Created link ${body.name}`
+    })
+
+    return created!.id
   })
 
   setResponseStatus(event, 201)
 
-  return { id: created!.id }
+  return { id }
 })
 
 async function assertCategoryExists(categoryId: number) {
